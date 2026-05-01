@@ -180,6 +180,7 @@ export interface PresenceUser {
   name: string | null;
   image: string | null;
   socketId: string;
+  workspaceId?: string;
   boardId: string;
   isTyping: boolean;
   lastSeen: Date;

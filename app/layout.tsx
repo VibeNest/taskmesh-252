@@ -6,15 +6,15 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Collaborative Workspace',
-  description: 'Real-time collaborative workspace for teams',
+  title: {
+    default: 'TaskMesh - Enterprise Team Collaboration',
+    template: '%s | TaskMesh',
+  },
+  description:
+    'Enterprise-grade real-time collaborative workspace for teams. Manage projects, track progress, and collaborate seamlessly.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>

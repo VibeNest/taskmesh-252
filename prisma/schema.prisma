@@ -30,6 +30,22 @@ enum NotificationType {
   BOARD_CREATED
 }
 
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  BLOCKED
+}
+
+enum TaskEstimate {
+  XS
+  S
+  M
+  L
+  XL
+}
+
 enum ActivityAction {
   WORKSPACE_CREATED
   WORKSPACE_UPDATED
@@ -50,6 +66,12 @@ enum ActivityAction {
   TASK_ASSIGNED
   COMMENT_ADDED
   COMMENT_DELETED
+  LABEL_CREATED
+  LABEL_DELETED
+  SPRINT_CREATED
+  SPRINT_STARTED
+  SPRINT_COMPLETED
+  EXPORT_REQUESTED
 }
 
 model User {
@@ -59,6 +81,11 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  bio           String?
+  jobTitle      String?
+  department    String?
+  phone         String?
+  timezone      String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -74,6 +101,9 @@ model User {
   tasksAssigned Task[] @relation("TaskAssignee")
   tasksCreated Task[] @relation("TaskCreator")
   tasksUpdated Task[] @relation("TaskUpdater")
+  subtasksAssigned Subtask[] @relation("SubtaskAssignee")
+  attachmentsUploaded Attachment[] @relation("AttachmentUploader")
+  taskViewsCreated TaskView[] @relation("TaskViewCreator")
 
   @@map("users")
 }
@@ -124,15 +154,20 @@ model Workspace {
   slug        String   @unique
   description String?
   logo        String?
+  plan        String   @default("free")
+  settings    Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   ownerId String
-owner User @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+ owner User @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members WorkspaceMember[]
   invitations Invitation[]
   boards Board[]
   activityLogs ActivityLog[]
+  labels Label[]
+  taskViews TaskView[]
+  sprints Sprint[]
 
   @@map("workspaces")
 }
@@ -210,14 +245,20 @@ model Column {
 }
 
 model Task {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   title       String
-  description String?
-  position    Int      @default(0)
+  description String?     @db.Text
+  position    Int         @default(0)
   priority    String?
+  status      TaskStatus  @default(TODO)
+  estimate    TaskEstimate?
+  storyPoints Int?
   dueDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  startDate   DateTime?
+  completedAt DateTime?
+  tags        String[]    @default([])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   columnId String
   column Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
@@ -233,7 +274,15 @@ model Task {
 
   comments Comment[]
   activityLogs ActivityLog[]
+  labels TaskLabel[]
+  subtasks Subtask[]
+  attachments Attachment[]
+  sprintId String?
+  sprint Sprint? @relation(fields: [sprintId], references: [id])
 
+  @@index([columnId])
+  @@index([assigneeId])
+  @@index([sprintId])
   @@map("tasks")
 }
 
@@ -298,4 +347,118 @@ model ActivityLog {
   @@index([userId])
   @@index([entityType, entityId])
   @@map("activity_logs")
+}
+
+model Label {
+  id          String   @id @default(cuid())
+  name        String
+  color       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspaceId String
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  tasks TaskLabel[]
+
+  @@unique([name, workspaceId])
+  @@index([workspaceId])
+  @@map("labels")
+}
+
+model TaskLabel {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  taskId String
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  labelId String
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, labelId])
+  @@map("task_labels")
+}
+
+model Subtask {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  taskId String
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  assigneeId String?
+  assignee User? @relation("SubtaskAssignee", fields: [assigneeId], references: [id])
+
+  @@index([taskId])
+  @@map("subtasks")
+}
+
+model Attachment {
+  id          String   @id @default(cuid())
+  fileName    String
+  fileUrl     String
+  fileSize    Int
+  mimeType    String
+  createdAt   DateTime @default(now())
+
+  taskId String
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  uploadedById String
+  uploadedBy User @relation("AttachmentUploader", fields: [uploadedById], references: [id])
+
+  @@index([taskId])
+  @@map("attachments")
+}
+
+model TaskView {
+  id          String   @id @default(cuid())
+  name        String
+  filters     Json
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspaceId String
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy User @relation("TaskViewCreator", fields: [createdById], references: [id])
+
+  @@index([workspaceId])
+  @@map("task_views")
+}
+
+model Sprint {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  status      SprintStatus  @default(PLANNED)
+  goal        String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  workspaceId String
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  tasks Task[]
+
+  @@index([workspaceId])
+  @@map("sprints")
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }

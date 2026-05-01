@@ -74,13 +74,14 @@ app.prepare().then(() => {
       const { boardId } = data;
       socket.data.boardId = boardId;
       socket.join(`board:${boardId}`);
-      await updatePresence(socket, socket.data.userId, boardId);
+      const uid = socket.data.userId!;
+      await updatePresence(socket, uid, boardId);
       const presenceUsers = Array.from(presence.values()).filter((p) => p.boardId === boardId);
       socket.emit('board:joined', { boardId, presence: presenceUsers });
       socket.to(`board:${boardId}`).emit('presence:update', {
-        id: socket.data.userId,
-        name: (await prisma.user.findUnique({ where: { id: socket.data.userId } }))?.name || null,
-        image: (await prisma.user.findUnique({ where: { id: socket.data.userId } }))?.image || null,
+        id: uid,
+        name: (await prisma.user.findUnique({ where: { id: uid } }))?.name || null,
+        image: (await prisma.user.findUnique({ where: { id: uid } }))?.image || null,
         socketId: socket.id,
         isTyping: false,
       });
@@ -89,7 +90,7 @@ app.prepare().then(() => {
     socket.on('board:leave', async (data) => {
       const { boardId } = data;
       socket.leave(`board:${boardId}`);
-      await removePresence(socket.data.userId, boardId);
+      await removePresence(socket.data.userId!, boardId);
       socket.to(`board:${boardId}`).emit('presence:update', {
         id: socket.data.userId,
         socketId: socket.id,
@@ -100,11 +101,12 @@ app.prepare().then(() => {
 
     socket.on('presence:update', async (data) => {
       const { boardId, isTyping } = data;
-      await updatePresence(socket, socket.data.userId, boardId, isTyping);
+      const uid = socket.data.userId!;
+      await updatePresence(socket, uid, boardId, isTyping);
       socket.to(`board:${boardId}`).emit('presence:update', {
-        id: socket.data.userId,
-        name: (await prisma.user.findUnique({ where: { id: socket.data.userId } }))?.name || null,
-        image: (await prisma.user.findUnique({ where: { id: socket.data.userId } }))?.image || null,
+        id: uid,
+        name: (await prisma.user.findUnique({ where: { id: uid } }))?.name || null,
+        image: (await prisma.user.findUnique({ where: { id: uid } }))?.image || null,
         socketId: socket.id,
         isTyping,
       });
@@ -169,22 +171,24 @@ app.prepare().then(() => {
     });
 
     socket.on('typing:start', async (data) => {
-      const boardId = socket.data.boardId;
-      await updatePresence(socket, socket.data.userId, boardId, true);
+      const boardId = socket.data.boardId!;
+      const uid = socket.data.userId!;
+      await updatePresence(socket, uid, boardId, true);
       socket.to(`board:${boardId}`).emit('typing:start', {
-        userId: socket.data.userId,
+        userId: uid,
         taskId: data.taskId,
-        name: (await prisma.user.findUnique({ where: { id: socket.data.userId } }))?.name || null,
-        image: (await prisma.user.findUnique({ where: { id: socket.data.userId } }))?.image || null,
+        name: (await prisma.user.findUnique({ where: { id: uid } }))?.name || null,
+        image: (await prisma.user.findUnique({ where: { id: uid } }))?.image || null,
         socketId: socket.id,
       });
     });
 
     socket.on('typing:stop', async (data) => {
-      const boardId = socket.data.boardId;
-      await updatePresence(socket, socket.data.userId, boardId, false);
+      const boardId = socket.data.boardId!;
+      const uid = socket.data.userId!;
+      await updatePresence(socket, uid, boardId, false);
       socket.to(`board:${boardId}`).emit('typing:stop', {
-        userId: socket.data.userId,
+        userId: uid,
         taskId: data.taskId,
         socketId: socket.id,
       });
@@ -217,6 +221,7 @@ async function updatePresence(
     boardId,
     workspaceId: socket.data.workspaceId,
     isTyping,
+    lastSeen: new Date(),
   };
 
   presence.set(socket.id, presenceData);

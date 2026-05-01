@@ -410,3 +410,258 @@ export function useActivity(workspaceId: string) {
     enabled: !!workspaceId,
   });
 }
+
+export function useSubtasks(taskId: string) {
+  return useQuery({
+    queryKey: ['subtasks', taskId],
+    queryFn: async () => {
+      const response = await fetch(`/api/tasks/${taskId}/subtasks`);
+      if (!response.ok) throw new Error('Failed to fetch subtasks');
+      return response.json();
+    },
+    enabled: !!taskId,
+  });
+}
+
+export function useCreateSubtask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      taskId,
+      data,
+    }: {
+      taskId: string;
+      data: { title: string; description?: string; assigneeId?: string };
+    }) => {
+      const response = await fetch(`/api/tasks/${taskId}/subtasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create subtask');
+      }
+      return response.json();
+    },
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: ['subtasks', taskId] });
+      toast.success('Subtask created');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useUpdateSubtask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      subtaskId,
+      data,
+    }: {
+      subtaskId: string;
+      data: {
+        completed?: boolean;
+        title?: string;
+        description?: string;
+        assigneeId?: string;
+        position?: number;
+      };
+    }) => {
+      const response = await fetch(`/api/subtasks/${subtaskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update subtask');
+      }
+      return response.json();
+    },
+    onSuccess: (_, { subtaskId }) => {
+      queryClient.invalidateQueries({ queryKey: ['subtasks'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useDeleteSubtask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (subtaskId: string) => {
+      const response = await fetch(`/api/subtasks/${subtaskId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete subtask');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subtasks'] });
+      toast.success('Subtask deleted');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useWorkspaceLabels(workspaceId: string) {
+  return useQuery({
+    queryKey: ['labels', workspaceId],
+    queryFn: async () => {
+      const response = await fetch(`/api/workspaces/${workspaceId}/labels`);
+      if (!response.ok) throw new Error('Failed to fetch labels');
+      return response.json();
+    },
+    enabled: !!workspaceId,
+  });
+}
+
+export function useCreateLabel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      workspaceId,
+      data,
+    }: {
+      workspaceId: string;
+      data: { name: string; color: string; description?: string };
+    }) => {
+      const response = await fetch(`/api/workspaces/${workspaceId}/labels`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create label');
+      }
+      return response.json();
+    },
+    onSuccess: (_, { workspaceId }) => {
+      queryClient.invalidateQueries({ queryKey: ['labels', workspaceId] });
+      toast.success('Label created');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useTaskLabels(taskId: string) {
+  return useQuery({
+    queryKey: ['task-labels', taskId],
+    queryFn: async () => {
+      const response = await fetch(`/api/tasks/${taskId}/labels`);
+      if (!response.ok) throw new Error('Failed to fetch task labels');
+      return response.json();
+    },
+    enabled: !!taskId,
+  });
+}
+
+export function useAddTaskLabel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ taskId, labelId }: { taskId: string; labelId: string }) => {
+      const response = await fetch(`/api/tasks/${taskId}/labels`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ labelId }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to add label');
+      }
+      return response.json();
+    },
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: ['task-labels', taskId] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useRemoveTaskLabel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ taskId, labelId }: { taskId: string; labelId: string }) => {
+      const response = await fetch(`/api/tasks/${taskId}/labels`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ labelId }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to remove label');
+      }
+      return response.json();
+    },
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: ['task-labels', taskId] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useProfile() {
+  return useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const response = await fetch('/api/profile');
+      if (!response.ok) throw new Error('Failed to fetch profile');
+      return response.json();
+    },
+  });
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      name?: string;
+      bio?: string;
+      jobTitle?: string;
+      department?: string;
+      phone?: string;
+      timezone?: string;
+    }) => {
+      const response = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update profile');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      toast.success('Profile updated');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}

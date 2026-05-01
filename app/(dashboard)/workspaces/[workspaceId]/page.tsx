@@ -35,6 +35,9 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  BarChart3,
+  Shield,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 
@@ -103,7 +106,19 @@ export default function WorkspacePage() {
               <span className="text-xl font-bold">{workspace.name}</span>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Link href={`/workspaces/${workspaceId}/analytics`}>
+              <Button variant="ghost" size="sm">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Analytics
+              </Button>
+            </Link>
+            <Link href={`/workspaces/${workspaceId}/audit`}>
+              <Button variant="ghost" size="sm">
+                <Shield className="mr-2 h-4 w-4" />
+                Audit
+              </Button>
+            </Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
@@ -174,6 +189,49 @@ export default function WorkspacePage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8">
+        <div className="mb-8 grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Boards</CardTitle>
+              <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{boards?.length || 0}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Team Members</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{members?.length || 0}</div>
+            </CardContent>
+          </Card>
+          <Link href={`/workspaces/${workspaceId}/analytics`}>
+            <Card className="cursor-pointer hover:bg-accent/50">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Analytics</CardTitle>
+                <BarChart3 className="h-4 w-4 text-blue-500" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">View team performance</p>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href={`/workspaces/${workspaceId}/audit`}>
+            <Card className="cursor-pointer hover:bg-accent/50">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Audit Log</CardTitle>
+                <Shield className="h-4 w-4 text-emerald-500" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">Track all changes</p>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
         <h1 className="mb-8 text-2xl font-bold">Boards</h1>
 
         {boards?.length === 0 ? (
@@ -222,9 +280,7 @@ export default function WorkspacePage() {
                       </DropdownMenu>
                     </div>
                     <CardTitle className="mt-2">{board.name}</CardTitle>
-                    <CardDescription>
-                      {board.description || 'No description'}
-                    </CardDescription>
+                    <CardDescription>{board.description || 'No description'}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-4 text-sm text-muted-foreground">
