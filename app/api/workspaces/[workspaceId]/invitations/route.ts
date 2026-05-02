@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { rbacService, activityService, notificationService } from '@/server/services';
 import { createInvitationSchema } from '@/lib/validations';
 import { ZodError } from 'zod';
+import { sendEmail, getInvitationEmailHtml } from '@/lib/email';
 
 export async function GET(request: NextRequest, { params }: { params: { workspaceId: string } }) {
   try {
@@ -80,7 +81,20 @@ export async function POST(request: NextRequest, { params }: { params: { workspa
       );
     }
 
-    return NextResponse.json(invitation, { status: 201 });
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const inviteLink = `${appUrl}/invitation?token=${invitation.token}`;
+
+    await sendEmail({
+      to: data.email,
+      subject: `You're invited to join ${session.user.name || 'a team'} on TaskMesh`,
+      html: getInvitationEmailHtml(
+        session.user.name || 'A team member',
+        (await workspaceRepository.findById(params.workspaceId))?.name || 'a workspace',
+        inviteLink
+      ),
+    });
+
+    return NextResponse.json({ ...invitation, inviteLink }, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(

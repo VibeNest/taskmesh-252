@@ -8,7 +8,11 @@ export const createWorkspaceSchema = z.object({
 });
 
 export const updateWorkspaceSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long').optional(),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name is too long')
+    .optional(),
   description: z.string().max(500, 'Description is too long').optional().nullable(),
   logo: z.string().url().optional().nullable(),
 });
@@ -30,7 +34,11 @@ export const createBoardSchema = z.object({
 });
 
 export const updateBoardSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long').optional(),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name is too long')
+    .optional(),
   description: z.string().max(500, 'Description is too long').optional().nullable(),
   icon: z.string().max(50).optional().nullable(),
   color: z.string().max(20).optional().nullable(),
@@ -42,7 +50,11 @@ export const createColumnSchema = z.object({
 });
 
 export const updateColumnSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long').optional(),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name is too long')
+    .optional(),
   color: z.string().max(20).optional().nullable(),
 });
 
@@ -55,11 +67,18 @@ export const createTaskSchema = z.object({
 });
 
 export const updateTaskSchema = z.object({
-  title: z.string().min(2, 'Title must be at least 2 characters').max(200, 'Title is too long').optional(),
+  title: z
+    .string()
+    .min(2, 'Title must be at least 2 characters')
+    .max(200, 'Title is too long')
+    .optional(),
   description: z.string().max(2000, 'Description is too long').optional().nullable(),
   priority: z.string().optional().nullable(),
+  status: z.string().optional(),
   dueDate: z.string().datetime().optional().nullable(),
+  startDate: z.string().datetime().optional().nullable(),
   assigneeId: z.string().cuid().optional().nullable(),
+  tags: z.array(z.string()).optional(),
 });
 
 export const moveTaskSchema = z.object({

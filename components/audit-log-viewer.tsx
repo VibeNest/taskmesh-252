@@ -130,7 +130,9 @@ export function AuditLogViewer({ logs }: AuditLogViewerProps) {
             </div>
 
             {log.metadata?.taskTitle && (
-              <p className="mt-1 text-sm text-muted-foreground">"{log.metadata.taskTitle}"</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                &quot;{log.metadata.taskTitle}&quot;
+              </p>
             )}
             {log.metadata?.boardName && (
               <p className="mt-1 text-sm text-muted-foreground">Board: {log.metadata.boardName}</p>

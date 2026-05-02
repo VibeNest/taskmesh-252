@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { TaskStatus } from '@prisma/client';
 
 export class TaskRepository {
   async create(data: {
@@ -100,8 +101,11 @@ export class TaskRepository {
       title?: string;
       description?: string | null;
       priority?: string | null;
+      status?: string;
       dueDate?: string | null;
+      startDate?: string | null;
       assigneeId?: string | null;
+      tags?: string[];
       updaterId: string;
     }
   ) {
@@ -111,7 +115,10 @@ export class TaskRepository {
         title: data.title,
         description: data.description,
         priority: data.priority,
+        status: data.status ? (data.status as TaskStatus) : undefined,
         dueDate: data.dueDate,
+        startDate: data.startDate,
+        tags: data.tags,
         assigneeId: data.assigneeId,
         updaterId: data.updaterId,
       },

@@ -214,7 +214,14 @@ export function useUpdateTask() {
       data,
     }: {
       taskId: string;
-      data: { title?: string; description?: string; priority?: string; assigneeId?: string };
+      data: {
+        title?: string;
+        description?: string;
+        priority?: string;
+        assigneeId?: string;
+        dueDate?: Date | null;
+        tags?: string[];
+      };
     }) => {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: 'PATCH',

@@ -5,10 +5,7 @@ import { rbacService, activityService, notificationService } from '@/server/serv
 import { createTaskSchema, updateTaskSchema, moveTaskSchema } from '@/lib/validations';
 import { ZodError } from 'zod';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { taskId: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { taskId: string } }) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -31,17 +28,11 @@ export async function GET(
     return NextResponse.json(task);
   } catch (error) {
     console.error('Error fetching task:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { taskId: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { taskId: string } }) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -91,7 +82,10 @@ export async function PATCH(
       title: data.title,
       description: data.description,
       priority: data.priority,
+      status: data.status,
       dueDate: data.dueDate,
+      startDate: data.startDate,
+      tags: data.tags,
       assigneeId: data.assigneeId,
       updaterId: session.user.id,
     });
@@ -129,17 +123,11 @@ export async function PATCH(
       );
     }
     console.error('Error updating task:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { taskId: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { taskId: string } }) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -165,9 +153,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting task:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

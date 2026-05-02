@@ -19,7 +19,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useBoard, useCreateTask, useMoveTask } from '@/hooks/use-api';
+import { useBoard, useCreateTask, useMoveTask, useWorkspaceMembers } from '@/hooks/use-api';
 import { useBoardStore } from '@/stores/board-store';
 import { useBoardSocket } from '@/hooks/use-socket';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SortableTaskCard } from '@/features/board/components/sortable-task-card';
 import { TaskCard } from '@/features/board/components/task-card';
 import { ColumnHeader } from '@/features/board/components/column-header';
+import {
+  TaskFilters,
+  TaskFilterState,
+  filterTasks,
+} from '@/features/board/components/task-filters';
+import { TaskDetailPanel } from '@/features/task/components/task-detail-panel';
 import { ArrowLeft, Plus, Loader2, Users, MessageSquare } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 import { TaskWithDetails, ColumnWithTasks } from '@/types';
@@ -49,14 +55,22 @@ export default function BoardPage() {
   const boardId = params.boardId as string;
 
   const { data: boardData, isLoading } = useBoard(workspaceId, boardId);
+  const { data: members } = useWorkspaceMembers(workspaceId);
   const { board, setBoard, moveTask: storeMoveTask } = useBoardStore();
   const { emitTaskMove } = useBoardSocket(boardId);
   const moveTask = useMoveTask();
 
   const [activeTask, setActiveTask] = useState<TaskWithDetails | null>(null);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [isAddingTask, setIsAddingTask] = useState<string | null>(null);
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<TaskFilterState>({
+    search: '',
+    assignee: 'all',
+    priority: 'all',
+    labels: [],
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -188,6 +202,10 @@ export default function BoardPage() {
     }
   };
 
+  const handleTaskClick = (task: any) => {
+    setSelectedTask(task);
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -240,6 +258,9 @@ export default function BoardPage() {
             </div>
           </div>
         </div>
+        <div className="border-t px-4 py-2">
+          <TaskFilters members={members || []} onFilterChange={setFilters} />
+        </div>
       </header>
 
       <main className="flex-1 overflow-x-auto p-4">
@@ -263,13 +284,18 @@ export default function BoardPage() {
                     strategy={verticalListSortingStrategy}
                   >
                     <div className="flex flex-col gap-2">
-                      {column.tasks.map((task) => (
-                        <SortableTaskCard
+                      {filterTasks(column.tasks, filters).map((task) => (
+                        <div
                           key={task.id}
-                          task={task}
-                          workspaceId={workspaceId}
-                          boardId={boardId}
-                        />
+                          onClick={() => handleTaskClick(task)}
+                          className="cursor-pointer"
+                        >
+                          <SortableTaskCard
+                            task={task}
+                            workspaceId={workspaceId}
+                            boardId={boardId}
+                          />
+                        </div>
                       ))}
                     </div>
                   </SortableContext>
@@ -352,6 +378,16 @@ export default function BoardPage() {
           </DragOverlay>
         </DndContext>
       </main>
+
+      {selectedTask && (
+        <TaskDetailPanel
+          task={selectedTask}
+          workspaceId={workspaceId}
+          boardId={boardId}
+          members={members || []}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
     </div>
   );
 }
