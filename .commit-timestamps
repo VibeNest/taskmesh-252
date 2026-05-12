@@ -69,3 +69,4 @@
 # 2026-05-13T02:57:56.768938 - chore: update env validation
 # 2026-05-12T21:21:02.768938 - chore: add docker healthcheck
 # 2026-05-12T18:14:12.768938 - chore: configure container registry
+# 2026-05-12T16:39:26.768938 - chore: add image tags
