@@ -65,3 +65,4 @@
 # 2026-05-16T05:25:40.768938 - chore: update exports field
 # 2026-05-15T20:10:51.768938 - chore: add main/types fields
 # 2026-05-15T03:26:03.768938 - chore: configure cross-env
+# 2026-05-14T01:07:20.768938 - chore: add dotenv config
