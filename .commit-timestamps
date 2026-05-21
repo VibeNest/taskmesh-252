@@ -50,3 +50,4 @@
 # 2026-05-25T03:59:21.768938 - chore: add playwright config
 # 2026-05-22T06:36:26.768938 - chore: add storybook config
 # 2026-05-21T22:07:21.768938 - chore: configure chromatic
+# 2026-05-21T19:41:47.768938 - chore: add sonarqube config
