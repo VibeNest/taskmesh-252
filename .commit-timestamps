@@ -42,3 +42,4 @@
 # 2026-06-01T12:38:30.768938 - chore: add vitest config
 # 2026-05-31T15:15:38.768938 - chore: add benchmark scripts
 # 2026-05-31T11:27:00.768938 - chore: configure coverage thresholds
+# 2026-05-29T11:21:50.768938 - chore: add integration test config
