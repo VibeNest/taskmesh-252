@@ -9,11 +9,15 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { loginSchema, type LoginInput } from '@/lib/validations';
-import { Loader2, Mail, Lock, Sparkles } from 'lucide-react';
+import { Loader2, Mail, Lock, Sparkles, UserCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+const GUEST_CREDENTIALS = { email: 'demo@taskmesh.io', password: 'demo1234' };
 
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [guestLoading, setGuestLoading] = useState(false);
 
   const {
     register,
@@ -41,6 +45,40 @@ export default function LoginPage() {
       }
     } catch {
       setError('An unexpected error occurred');
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setGuestLoading(true);
+    try {
+      const result = await signIn('credentials', {
+        email: GUEST_CREDENTIALS.email,
+        password: GUEST_CREDENTIALS.password,
+        isRegister: 'false',
+        redirect: false,
+      });
+
+      if (result?.error) {
+        const registerResult = await signIn('credentials', {
+          email: GUEST_CREDENTIALS.email,
+          password: GUEST_CREDENTIALS.password,
+          name: 'Demo User',
+          isRegister: 'true',
+          redirect: false,
+        });
+        if (registerResult?.error) {
+          toast.error('Guest login unavailable. Use the credentials below.');
+          setGuestLoading(false);
+          return;
+        }
+      }
+
+      router.push('/workspaces');
+      router.refresh();
+    } catch {
+      toast.error('Guest login unavailable. Use the credentials below.');
+    } finally {
+      setGuestLoading(false);
     }
   };
 
@@ -225,6 +263,34 @@ export default function LoginPage() {
               GitHub
             </Button>
           </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500">quick demo</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+            onClick={handleGuestLogin}
+            disabled={guestLoading}
+          >
+            {guestLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <UserCircle className="mr-2 h-4 w-4" />
+            )}
+            Try Demo (No Signup Needed)
+          </Button>
+
+          <p className="text-center text-xs text-gray-400">
+            Demo account: demo@taskmesh.io / demo1234
+          </p>
 
           <p className="text-center text-sm text-gray-500">
             Don&apos;t have an account?{' '}

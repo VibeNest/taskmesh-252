@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: taskmesh
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install --legacy-peer-deps && npx prisma generate && npx prisma db push && npm run build
+    startCommand: npx prisma db push && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: taskmesh-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: taskmesh-redis
+          type: redis
+          property: connectionString
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: AUTH_URL
+        value: https://taskmesh.onrender.com
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://taskmesh.onrender.com
+      - key: NEXT_PUBLIC_SOCKET_URL
+        value: wss://taskmesh.onrender.com
+      - key: LOG_LEVEL
+        value: info
+
+databases:
+  - name: taskmesh-db
+    plan: free
+    databaseType: postgres
+    ipAllowList: []
+
+redis:
+  - name: taskmesh-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
