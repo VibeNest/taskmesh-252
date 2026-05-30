@@ -58,12 +58,12 @@ export function ColumnHeader({ column, workspaceId, boardId }: ColumnHeaderProps
   };
 
   return (
-    <div className="flex items-center justify-between border-b p-3">
+    <div className="flex items-center justify-between border-b px-3 py-2.5">
       {isEditing ? (
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-8"
+          className="h-7 text-sm"
           autoFocus
           onBlur={handleRename}
           onKeyDown={(e) => {
@@ -77,12 +77,12 @@ export function ColumnHeader({ column, workspaceId, boardId }: ColumnHeaderProps
       ) : (
         <div className="flex items-center gap-2">
           <h3
-            className="font-semibold"
+            className="text-sm font-medium"
             onDoubleClick={() => setIsEditing(true)}
           >
             {column.name}
           </h3>
-          <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-600">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] text-muted-foreground">
             {column.tasks.length}
           </span>
         </div>
@@ -90,18 +90,18 @@ export function ColumnHeader({ column, workspaceId, boardId }: ColumnHeaderProps
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-7 w-7">
+            <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setIsEditing(true)}>
-            <Pencil className="mr-2 h-4 w-4" />
+            <Pencil className="mr-2 h-3.5 w-3.5" />
             Rename
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-            <Trash2 className="mr-2 h-4 w-4" />
+          <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+            <Trash2 className="mr-2 h-3.5 w-3.5" />
             Delete column
           </DropdownMenuItem>
         </DropdownMenuContent>

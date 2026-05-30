@@ -5,9 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useWorkspace, useBoards, useCreateBoard, useWorkspaceMembers } from '@/hooks/use-api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog,
@@ -21,7 +19,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -37,7 +34,6 @@ import {
   Trash2,
   BarChart3,
   Shield,
-  FileSpreadsheet,
 } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 
@@ -68,231 +64,185 @@ export default function WorkspacePage() {
 
   if (workspaceLoading || boardsLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
+        <Loader2 className="size-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (!workspace) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Workspace not found</p>
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
+        <p className="text-sm text-muted-foreground">Workspace not found</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <header className="border-b bg-white">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/workspaces"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-                {workspace.logo ? (
-                  <img src={workspace.logo} alt={workspace.name} className="h-6 w-6 rounded" />
-                ) : (
-                  <span className="text-lg font-bold text-white">
-                    {workspace.name.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <span className="text-xl font-bold">{workspace.name}</span>
-            </div>
+    <div className="mx-auto max-w-5xl px-6 py-8">
+      <div className="mb-8 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/workspaces"
+            className="flex size-8 items-center justify-center rounded-md border text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="size-4" />
+          </Link>
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+            <span className="text-sm font-semibold text-primary">
+              {workspace.name.charAt(0).toUpperCase()}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Link href={`/workspaces/${workspaceId}/analytics`}>
-              <Button variant="ghost" size="sm">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Analytics
-              </Button>
-            </Link>
-            <Link href={`/workspaces/${workspaceId}/audit`}>
-              <Button variant="ghost" size="sm">
-                <Shield className="mr-2 h-4 w-4" />
-                Audit
-              </Button>
-            </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <Users className="mr-2 h-4 w-4" />
-                  {members?.length || 0}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Team Members</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {members?.map((member: any) => (
-                  <DropdownMenuItem key={member.id} className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={member.user.image} />
-                      <AvatarFallback className="text-xs">
-                        {getInitials(member.user.name || member.user.email)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm">{member.user.name || member.user.email}</span>
-                      <span className="text-xs text-muted-foreground">{member.role}</span>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Link href={`/workspaces/${workspaceId}/settings`}>
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-              </Button>
-            </Link>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Board
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create a new board</DialogTitle>
-                  <DialogDescription>
-                    Boards help you organize tasks within your workspace.
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleCreateBoard} className="space-y-4">
-                  <div>
-                    <label htmlFor="board-name" className="text-sm font-medium">
-                      Board name
-                    </label>
-                    <Input
-                      id="board-name"
-                      value={newBoardName}
-                      onChange={(e) => setNewBoardName(e.target.value)}
-                      placeholder="e.g., Marketing, Product Roadmap"
-                      className="mt-1"
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={createBoard.isPending}>
-                    {createBoard.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create board
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+          <div>
+            <h1 className="text-lg font-semibold">{workspace.name}</h1>
+            <p className="text-xs text-muted-foreground">
+              {boards?.length || 0} boards &middot; {members?.length || 0} members
+            </p>
           </div>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <div className="mb-8 grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Boards</CardTitle>
-              <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{boards?.length || 0}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{members?.length || 0}</div>
-            </CardContent>
-          </Card>
+        <div className="flex items-center gap-1">
           <Link href={`/workspaces/${workspaceId}/analytics`}>
-            <Card className="cursor-pointer hover:bg-accent/50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Analytics</CardTitle>
-                <BarChart3 className="h-4 w-4 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">View team performance</p>
-              </CardContent>
-            </Card>
+            <Button variant="ghost" size="sm" className="h-8 text-xs">
+              <BarChart3 className="mr-1.5 size-3.5" />
+              Analytics
+            </Button>
           </Link>
           <Link href={`/workspaces/${workspaceId}/audit`}>
-            <Card className="cursor-pointer hover:bg-accent/50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Audit Log</CardTitle>
-                <Shield className="h-4 w-4 text-emerald-500" />
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">Track all changes</p>
-              </CardContent>
-            </Card>
+            <Button variant="ghost" size="sm" className="h-8 text-xs">
+              <Shield className="mr-1.5 size-3.5" />
+              Audit
+            </Button>
+          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 text-xs">
+                <Users className="mr-1.5 size-3.5" />
+                {members?.length || 0}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {members?.map((member: { id: string; role: string; user: { image: string; name: string; email: string } }) => (
+                <div key={member.id} className="flex items-center gap-2 px-2 py-1.5">
+                  <Avatar className="size-6">
+                    <AvatarImage src={member.user.image} />
+                    <AvatarFallback className="text-[10px]">
+                      {getInitials(member.user.name || member.user.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="text-sm">{member.user.name || member.user.email}</span>
+                    <span className="text-xs text-muted-foreground">{member.role}</span>
+                  </div>
+                </div>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Link href={`/workspaces/${workspaceId}/settings`}>
+            <Button variant="ghost" size="icon" className="size-8">
+              <Settings className="size-4" />
+            </Button>
           </Link>
         </div>
+      </div>
 
-        <h1 className="mb-8 text-2xl font-bold">Boards</h1>
-
-        {boards?.length === 0 ? (
-          <div className="rounded-lg border-2 border-dashed p-12 text-center">
-            <LayoutGrid className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <h2 className="mb-2 text-xl font-semibold">No boards yet</h2>
-            <p className="mb-6 text-muted-foreground">
-              Create your first board to start managing tasks with your team.
-            </p>
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create board
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-sm font-medium">Boards</h2>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="mr-1.5 size-3.5" />
+              New Board
             </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create board</DialogTitle>
+              <DialogDescription>
+                Boards help you organize tasks within your workspace.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleCreateBoard} className="space-y-4">
+              <div>
+                <label htmlFor="board-name" className="text-sm font-medium">
+                  Board name
+                </label>
+                <Input
+                  id="board-name"
+                  value={newBoardName}
+                  onChange={(e) => setNewBoardName(e.target.value)}
+                  placeholder="e.g. Marketing, Product Roadmap"
+                  className="mt-1.5"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={createBoard.isPending}>
+                {createBoard.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+                Create board
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {boards?.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed p-12">
+          <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-muted">
+            <LayoutGrid className="size-6 text-muted-foreground" />
           </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {boards?.map((board: any) => (
-              <Link key={board.id} href={`/workspaces/${workspaceId}/boards/${board.id}`}>
-                <Card className="cursor-pointer transition-shadow hover:shadow-lg">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
-                      <div
-                        className="flex h-10 w-10 items-center justify-center rounded-lg"
-                        style={{ backgroundColor: board.color || '#6366f1' }}
-                      >
-                        <span className="text-lg font-bold text-white">
-                          {board.icon || board.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Rename
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    <CardTitle className="mt-2">{board.name}</CardTitle>
-                    <CardDescription>{board.description || 'No description'}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-4 text-sm text-muted-foreground">
-                      <span>{board._count?.columns || 0} columns</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        )}
-      </main>
+          <h3 className="mb-1 text-base font-medium">No boards yet</h3>
+          <p className="mb-6 max-w-sm text-center text-sm text-muted-foreground">
+            Create your first board to start managing tasks with your team.
+          </p>
+          <Button onClick={() => setIsDialogOpen(true)} size="sm">
+            <Plus className="mr-1.5 size-3.5" />
+            Create board
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {boards?.map((board: { id: string; name: string; description?: string; icon?: string; color?: string; _count?: { columns: number } }) => (
+            <Link key={board.id} href={`/workspaces/${workspaceId}/boards/${board.id}`}>
+              <div className="group rounded-lg border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-sm">
+                <div className="mb-3 flex items-start justify-between">
+                  <div
+                    className="flex size-9 items-center justify-center rounded-lg"
+                    style={{ backgroundColor: board.color || '#6366f1' }}
+                  >
+                    <span className="text-sm font-semibold text-white">
+                      {board.icon || board.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
+                      <Button variant="ghost" size="icon" className="size-7">
+                        <MoreHorizontal className="size-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Pencil className="mr-2 size-3.5" />
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive">
+                        <Trash2 className="mr-2 size-3.5" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <h3 className="mb-0.5 text-sm font-medium">{board.name}</h3>
+                <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">
+                  {board.description || 'No description'}
+                </p>
+                <div className="text-xs text-muted-foreground">
+                  {board._count?.columns || 0} columns
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -19,23 +19,12 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useBoard, useCreateTask, useMoveTask, useWorkspaceMembers } from '@/hooks/use-api';
+import { useBoard, useMoveTask, useWorkspaceMembers } from '@/hooks/use-api';
 import { useBoardStore } from '@/stores/board-store';
 import { useBoardSocket } from '@/hooks/use-socket';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 import { SortableTaskCard } from '@/features/board/components/sortable-task-card';
 import { TaskCard } from '@/features/board/components/task-card';
 import { ColumnHeader } from '@/features/board/components/column-header';
@@ -45,9 +34,8 @@ import {
   filterTasks,
 } from '@/features/board/components/task-filters';
 import { TaskDetailPanel } from '@/features/task/components/task-detail-panel';
-import { ArrowLeft, Plus, Loader2, Users, MessageSquare } from 'lucide-react';
-import { getInitials } from '@/lib/utils';
-import { TaskWithDetails, ColumnWithTasks } from '@/types';
+import { ArrowLeft, Plus, Loader2, Users } from 'lucide-react';
+import type { TaskWithDetails } from '@/types';
 
 export default function BoardPage() {
   const params = useParams();
@@ -61,10 +49,10 @@ export default function BoardPage() {
   const moveTask = useMoveTask();
 
   const [activeTask, setActiveTask] = useState<TaskWithDetails | null>(null);
-  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [isAddingTask, setIsAddingTask] = useState<string | null>(null);
-  const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+
   const [filters, setFilters] = useState<TaskFilterState>({
     search: '',
     assignee: 'all',
@@ -74,9 +62,7 @@ export default function BoardPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -191,9 +177,7 @@ export default function BoardPage() {
         }),
       });
       if (response.ok) {
-        const task = await response.json();
         setNewTaskTitle('');
-        setActiveColumnId(null);
       }
     } catch (error) {
       console.error('Failed to create task:', error);
@@ -202,66 +186,54 @@ export default function BoardPage() {
     }
   };
 
-  const handleTaskClick = (task: any) => {
+  const handleTaskClick = (task: TaskWithDetails) => {
     setSelectedTask(task);
   };
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
+        <Loader2 className="size-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (!board) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Board not found</p>
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
+        <p className="text-sm text-muted-foreground">Board not found</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen flex-col bg-gradient-to-br from-slate-50 to-slate-100">
-      <header className="border-b bg-white">
-        <div className="flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-4">
-            <Link
-              href={`/workspaces/${workspaceId}`}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div>
-              <h1 className="text-lg font-bold">{board.name}</h1>
-              {board.description && (
-                <p className="text-sm text-muted-foreground">{board.description}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8 border-2 border-white">
-                <AvatarFallback className="bg-blue-500 text-xs text-white">JD</AvatarFallback>
-              </Avatar>
-              <Avatar className="-ml-2 h-8 w-8 border-2 border-white">
-                <AvatarFallback className="bg-green-500 text-xs text-white">MK</AvatarFallback>
-              </Avatar>
-              <Avatar className="-ml-2 h-8 w-8 border-2 border-white">
-                <AvatarFallback className="bg-purple-500 text-xs text-white">AS</AvatarFallback>
-              </Avatar>
-              <Button variant="ghost" size="sm" className="ml-2">
-                <Users className="mr-2 h-4 w-4" />
-                Share
-              </Button>
-            </div>
+    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+      <header className="flex items-center justify-between border-b px-4 py-2.5">
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/workspaces/${workspaceId}`}
+            className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="size-4" />
+          </Link>
+          <div>
+            <h1 className="text-sm font-medium">{board.name}</h1>
+            {board.description && (
+              <p className="text-xs text-muted-foreground">{board.description}</p>
+            )}
           </div>
         </div>
-        <div className="border-t px-4 py-2">
-          <TaskFilters members={members || []} onFilterChange={setFilters} />
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="h-7 text-xs">
+            <Users className="mr-1.5 size-3.5" />
+            Share
+          </Button>
         </div>
       </header>
+
+      <div className="border-b px-4 py-2">
+        <TaskFilters members={members || []} onFilterChange={setFilters} />
+      </div>
 
       <main className="flex-1 overflow-x-auto p-4">
         <DndContext
@@ -272,10 +244,7 @@ export default function BoardPage() {
         >
           <div className="flex h-full gap-4">
             {board.columns.map((column) => (
-              <div
-                key={column.id}
-                className="flex w-80 flex-shrink-0 flex-col rounded-lg bg-slate-100"
-              >
+              <div key={column.id} className="flex w-72 shrink-0 flex-col rounded-lg bg-muted/50">
                 <ColumnHeader column={column} workspaceId={workspaceId} boardId={boardId} />
 
                 <div className="flex-1 overflow-y-auto p-2">
@@ -301,12 +270,12 @@ export default function BoardPage() {
                   </SortableContext>
 
                   {isAddingTask === column.id ? (
-                    <div className="mt-2 rounded-lg bg-white p-3 shadow-sm">
+                    <div className="mt-2 animate-fade-in rounded-lg border bg-card p-2">
                       <Input
                         value={newTaskTitle}
                         onChange={(e) => setNewTaskTitle(e.target.value)}
-                        placeholder="Enter task title..."
-                        className="mb-2"
+                        placeholder="Task title..."
+                        className="mb-2 h-8 text-sm"
                         autoFocus
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') handleAddTask(column.id);
@@ -316,13 +285,14 @@ export default function BoardPage() {
                           }
                         }}
                       />
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={() => handleAddTask(column.id)}>
+                      <div className="flex gap-1.5">
+                        <Button size="sm" className="h-7 text-xs" onClick={() => handleAddTask(column.id)}>
                           Add
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
+                          className="h-7 text-xs"
                           onClick={() => {
                             setIsAddingTask(null);
                             setNewTaskTitle('');
@@ -333,25 +303,20 @@ export default function BoardPage() {
                       </div>
                     </div>
                   ) : (
-                    <Button
-                      variant="ghost"
-                      className="mt-2 w-full justify-start text-muted-foreground"
-                      onClick={() => {
-                        setIsAddingTask(column.id);
-                        setActiveColumnId(column.id);
-                      }}
+                    <button
+                      className="mt-1 flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent"
+                      onClick={() => setIsAddingTask(column.id)}
                     >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add a task
-                    </Button>
+                      <Plus className="size-3.5" />
+                      Add task
+                    </button>
                   )}
                 </div>
               </div>
             ))}
 
-            <Button
-              variant="outline"
-              className="h-12 w-80 flex-shrink-0 border-dashed"
+            <button
+              className="flex h-10 w-72 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-dashed text-xs text-muted-foreground hover:border-primary/30 hover:text-primary"
               onClick={() => {
                 const name = prompt('Enter column name:');
                 if (name) {
@@ -366,9 +331,9 @@ export default function BoardPage() {
                 }
               }}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="size-3.5" />
               Add column
-            </Button>
+            </button>
           </div>
 
           <DragOverlay>

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Loader2, ArrowLeft, BarChart3 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-api';
 import { AnalyticsDashboard } from '@/components/analytics-dashboard';
 import { Button } from '@/components/ui/button';
@@ -28,59 +28,51 @@ export default function AnalyticsPage() {
 
   if (workspaceLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
+        <Loader2 className="size-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (!workspace) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Workspace not found</p>
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
+        <p className="text-sm text-muted-foreground">Workspace not found</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="border-b bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push(`/workspaces/${workspaceId}`)}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="flex items-center gap-2 text-2xl font-bold">
-                <BarChart3 className="h-6 w-6 text-blue-500" />
-                Analytics
-              </h1>
-              <p className="text-sm text-muted-foreground">{workspace.name}</p>
-            </div>
-          </div>
+    <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="mb-6 flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8"
+          onClick={() => router.push(`/workspaces/${workspaceId}`)}
+        >
+          <ArrowLeft className="size-4" />
+        </Button>
+        <div>
+          <h1 className="text-lg font-semibold">Analytics</h1>
+          <p className="text-xs text-muted-foreground">{workspace.name}</p>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-6">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
-          <AnalyticsDashboard
-            data={{
-              tasks: analyticsData?.tasks || [],
-              members: analyticsData?.members || [],
-              activityLogs: analyticsData?.activityLogs || [],
-              boards: analyticsData?.boards || [],
-            }}
-          />
-        )}
-      </div>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <AnalyticsDashboard
+          data={{
+            tasks: analyticsData?.tasks || [],
+            members: analyticsData?.members || [],
+            activityLogs: analyticsData?.activityLogs || [],
+            boards: analyticsData?.boards || [],
+          }}
+        />
+      )}
     </div>
   );
 }

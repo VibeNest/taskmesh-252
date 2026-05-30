@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Filter, X, Search, User } from 'lucide-react';
+import { Filter, X, Search } from 'lucide-react';
 
 interface TaskFiltersProps {
   members: any[];
@@ -50,24 +50,25 @@ export function TaskFilters({ members, onFilterChange }: TaskFiltersProps) {
     filters.search || filters.assignee !== 'all' || filters.priority !== 'all';
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex items-center gap-2">
         <div className="relative max-w-xs flex-1">
-          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search tasks..."
             value={filters.search}
             onChange={(e) => updateFilter('search', e.target.value)}
-            className="pl-8"
+            className="h-8 pl-8 text-xs"
           />
         </div>
 
         <Button
           variant={hasActiveFilters ? 'default' : 'outline'}
           size="sm"
+          className="h-8 text-xs"
           onClick={() => setShowFilters(!showFilters)}
         >
-          <Filter className="mr-1 h-4 w-4" />
+          <Filter className="mr-1 h-3.5 w-3.5" />
           Filters
           {hasActiveFilters && (
             <Badge variant="secondary" className="ml-1 h-4 w-4 rounded-full p-0 text-[10px]">
@@ -77,8 +78,8 @@ export function TaskFilters({ members, onFilterChange }: TaskFiltersProps) {
         </Button>
 
         {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
-            <X className="mr-1 h-4 w-4" />
+          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={clearFilters}>
+            <X className="mr-1 h-3.5 w-3.5" />
             Clear
           </Button>
         )}
@@ -86,13 +87,15 @@ export function TaskFilters({ members, onFilterChange }: TaskFiltersProps) {
 
       {showFilters && (
         <div className="flex flex-wrap gap-2 rounded-lg border bg-card p-3">
-          <div className="w-48">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Assignee</label>
+          <div className="w-44">
+            <label className="mb-1 block text-[10px] font-medium text-muted-foreground">
+              Assignee
+            </label>
             <Select
               value={filters.assignee}
               onValueChange={(value) => updateFilter('assignee', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -107,13 +110,15 @@ export function TaskFilters({ members, onFilterChange }: TaskFiltersProps) {
             </Select>
           </div>
 
-          <div className="w-48">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Priority</label>
+          <div className="w-44">
+            <label className="mb-1 block text-[10px] font-medium text-muted-foreground">
+              Priority
+            </label>
             <Select
               value={filters.priority}
               onValueChange={(value) => updateFilter('priority', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

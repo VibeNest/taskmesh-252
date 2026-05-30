@@ -76,9 +76,7 @@ export function TaskDetailPanel({
     updateTask.mutate({ taskId: task.id, data: { description } });
   };
 
-  const handleToggleSubtask = (id: string, completed: boolean) => {
-    // Optimistic update would go here, for now just call the API
-  };
+  const handleToggleSubtask = (id: string, completed: boolean) => {};
 
   const handleCreateSubtask = (title: string) => {
     createSubtask.mutate({ taskId: task.id, data: { title } });
@@ -103,11 +101,11 @@ export function TaskDetailPanel({
     }
   };
 
-  const priorityColors: Record<string, string> = {
-    urgent: 'bg-red-100 text-red-800',
+  const priorityStyles: Record<string, string> = {
+    urgent: 'bg-destructive/10 text-destructive',
     high: 'bg-orange-100 text-orange-800',
     medium: 'bg-blue-100 text-blue-800',
-    low: 'bg-green-100 text-green-800',
+    low: 'bg-emerald-100 text-emerald-800',
   };
 
   const labels = taskLabelsData?.map((tl: any) => tl.label) || [];
@@ -117,27 +115,27 @@ export function TaskDetailPanel({
       <div className="fixed inset-0 bg-black/20" />
 
       <div
-        className="relative z-50 flex h-full w-full max-w-xl flex-col bg-background shadow-xl"
+        className="relative z-50 flex h-full w-full max-w-xl flex-col bg-card shadow-xl animate-slide-in-right"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b p-4">
+        <div className="flex items-center justify-between border-b px-4 py-3">
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-[10px]">
               {task.column?.name || 'Unknown column'}
             </Badge>
             {task.priority && (
-              <Badge variant="outline" className={`text-xs ${priorityColors[task.priority] || ''}`}>
+              <Badge variant="outline" className={`text-[10px] ${priorityStyles[task.priority] || ''}`}>
                 {task.priority}
               </Badge>
             )}
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="space-y-6 p-4">
+        <div className="flex-1 overflow-y-auto scrollbar-thin">
+          <div className="space-y-5 p-4">
             {editingTitle ? (
               <Input
                 value={title}
@@ -150,12 +148,12 @@ export function TaskDetailPanel({
                     setEditingTitle(false);
                   }
                 }}
-                className="text-xl font-bold"
+                className="text-lg font-semibold"
                 autoFocus
               />
             ) : (
               <h2
-                className="-m-1 cursor-pointer rounded p-1 text-xl font-bold hover:bg-accent/50"
+                className="-mx-1 cursor-pointer rounded px-1 text-lg font-semibold hover:bg-accent/50"
                 onClick={() => setEditingTitle(true)}
               >
                 {title}
@@ -163,9 +161,9 @@ export function TaskDetailPanel({
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <User className="h-4 w-4" />
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <User className="h-3.5 w-3.5" />
                   Assignee
                 </label>
                 <Select
@@ -177,7 +175,7 @@ export function TaskDetailPanel({
                     });
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -191,9 +189,9 @@ export function TaskDetailPanel({
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <Calendar className="h-3.5 w-3.5" />
                   Due Date
                 </label>
                 <Input
@@ -205,11 +203,12 @@ export function TaskDetailPanel({
                       data: { dueDate: e.target.value ? new Date(e.target.value) : undefined },
                     });
                   }}
+                  className="h-8 text-xs"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   Priority
                 </label>
                 <Select
@@ -221,7 +220,7 @@ export function TaskDetailPanel({
                     });
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -234,13 +233,14 @@ export function TaskDetailPanel({
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   Tags
                 </label>
                 <Input
                   placeholder="Add tags (comma separated)"
                   defaultValue={(task.tags || []).join(', ')}
+                  className="h-8 text-xs"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       const tags = (e.target as HTMLInputElement).value
@@ -255,24 +255,21 @@ export function TaskDetailPanel({
             </div>
 
             {labels.length > 0 && (
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <Tag className="h-4 w-4" />
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <Tag className="h-3.5 w-3.5" />
                   Labels
                 </label>
                 <div className="flex flex-wrap gap-1">
                   {labels.map((label: any) => (
                     <span
                       key={label.id}
-                      className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs text-white"
+                      className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] text-white"
                       style={{ backgroundColor: label.color }}
                     >
                       {label.name}
-                      <button
-                        onClick={() => handleRemoveLabel(label.id)}
-                        className="hover:opacity-70"
-                      >
-                        <X className="h-3 w-3" />
+                      <button onClick={() => handleRemoveLabel(label.id)} className="hover:opacity-70">
+                        <X className="h-2.5 w-2.5" />
                       </button>
                     </span>
                   ))}
@@ -289,21 +286,21 @@ export function TaskDetailPanel({
               />
             )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Description</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Description</label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 onBlur={handleDescriptionSave}
                 placeholder="Add a description..."
-                rows={4}
-                className="resize-none"
+                rows={3}
+                className="resize-none text-sm"
               />
             </div>
 
-            <div className="space-y-3">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <CheckSquare className="h-4 w-4" />
+            <div className="space-y-2">
+              <label className="flex items-center gap-1.5 text-xs font-medium">
+                <CheckSquare className="h-3.5 w-3.5" />
                 Subtasks
               </label>
               <SubtaskList
@@ -315,16 +312,16 @@ export function TaskDetailPanel({
             </div>
 
             <div className="space-y-3">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <MessageSquare className="h-4 w-4" />
+              <label className="flex items-center gap-1.5 text-xs font-medium">
+                <MessageSquare className="h-3.5 w-3.5" />
                 Comments
               </label>
               <div className="space-y-3">
                 {task.comments?.map((comment: any) => (
                   <div key={comment.id} className="flex gap-2">
-                    <Avatar className="h-8 w-8 shrink-0">
+                    <Avatar className="h-7 w-7 shrink-0">
                       <AvatarImage src={comment.author?.image || undefined} />
-                      <AvatarFallback className="text-xs">
+                      <AvatarFallback className="text-[10px]">
                         {comment.author?.name?.[0]?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
@@ -337,14 +334,14 @@ export function TaskDetailPanel({
                           {format(new Date(comment.createdAt), 'MMM dd, HH:mm')}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{comment.content}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{comment.content}</p>
                     </div>
                   </div>
                 ))}
 
                 <div className="flex gap-2">
-                  <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarFallback className="text-xs">ME</AvatarFallback>
+                  <Avatar className="h-7 w-7 shrink-0">
+                    <AvatarFallback className="text-[10px]">ME</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <Textarea
@@ -352,7 +349,7 @@ export function TaskDetailPanel({
                       onChange={(e) => setComment(e.target.value)}
                       placeholder="Write a comment..."
                       rows={2}
-                      className="resize-none"
+                      className="resize-none text-sm"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -363,13 +360,14 @@ export function TaskDetailPanel({
                     <div className="mt-1 flex justify-end">
                       <Button
                         size="sm"
+                        className="h-7 text-xs"
                         onClick={handleCreateComment}
                         disabled={!comment.trim() || createComment.isPending}
                       >
                         {createComment.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : (
-                          <Send className="h-4 w-4" />
+                          <Send className="h-3.5 w-3.5" />
                         )}
                         <span className="ml-1">Comment</span>
                       </Button>
@@ -381,7 +379,7 @@ export function TaskDetailPanel({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t p-3 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between border-t px-4 py-2.5 text-[10px] text-muted-foreground">
           <span>Created {format(new Date(task.createdAt), 'MMM dd, yyyy')}</span>
           <span>Updated {format(new Date(task.updatedAt), 'MMM dd, yyyy')}</span>
         </div>

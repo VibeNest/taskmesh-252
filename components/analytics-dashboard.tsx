@@ -11,8 +11,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -25,7 +23,6 @@ import {
   TrendingDown,
   Users,
   CheckCircle,
-  Clock,
   AlertCircle,
   Target,
 } from 'lucide-react';
@@ -41,14 +38,7 @@ interface AnalyticsDashboardProps {
   data: AnalyticsData;
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
-
-const priorityColors: Record<string, string> = {
-  urgent: '#ef4444',
-  high: '#f59e0b',
-  medium: '#3b82f6',
-  low: '#10b981',
-};
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
   const stats = useMemo(() => {
@@ -59,7 +49,6 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
     const totalMembers = data.members.length;
     const totalBoards = data.boards.length;
-    const recentActivity = data.activityLogs.slice(0, 10);
 
     const now = new Date();
     const lastWeek = subDays(now, 7);
@@ -80,7 +69,6 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
       totalMembers,
       totalBoards,
       taskGrowth,
-      recentActivity,
     };
   }, [data]);
 
@@ -94,15 +82,6 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
     ],
     [data.tasks]
   );
-
-  const taskByPriorityData = useMemo(() => {
-    const priorityCount: Record<string, number> = {};
-    data.tasks.forEach((task) => {
-      const priority = task.priority || 'none';
-      priorityCount[priority] = (priorityCount[priority] || 0) + 1;
-    });
-    return Object.entries(priorityCount).map(([name, value]) => ({ name, value }));
-  }, [data.tasks]);
 
   const dailyActivityData = useMemo(() => {
     const days = Array.from({ length: 7 }, (_, i) => {
@@ -154,8 +133,8 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs font-medium">Total Tasks</CardTitle>
+            <Target className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalTasks}</div>
@@ -165,7 +144,7 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
               ) : (
                 <TrendingDown className="mr-1 h-3 w-3 text-red-500" />
               )}
-              <span className={stats.taskGrowth >= 0 ? 'text-emerald-500' : 'text-red-500'}>
+              <span className={stats.taskGrowth >= 0 ? 'text-emerald-600' : 'text-red-600'}>
                 {stats.taskGrowth >= 0 ? '+' : ''}
                 {stats.taskGrowth}%
               </span>
@@ -176,14 +155,14 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs font-medium">Completion Rate</CardTitle>
+            <CheckCircle className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.completionRate}%</div>
-            <div className="mt-2 h-2 w-full rounded-full bg-muted">
+            <div className="mt-2 h-1.5 w-full rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all"
+                className="h-full rounded-full bg-emerald-500 transition-all"
                 style={{ width: `${stats.completionRate}%` }}
               />
             </div>
@@ -192,8 +171,8 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs font-medium">Team Members</CardTitle>
+            <Users className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalMembers}</div>
@@ -203,8 +182,8 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Blocked Tasks</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs font-medium">Blocked Tasks</CardTitle>
+            <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.blockedTasks}</div>
@@ -217,20 +196,21 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle>Daily Activity</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Daily Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={dailyActivityData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="date" className="text-xs" />
-                <YAxis className="text-xs" />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" opacity={0.4} />
+                <XAxis dataKey="date" className="text-xs" tick={{ fontSize: 11 }} />
+                <YAxis className="text-xs" tick={{ fontSize: 11 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '8px',
+                    fontSize: '12px',
                   }}
                 />
                 <Area
@@ -239,7 +219,7 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
                   stackId="1"
                   stroke="#3b82f6"
                   fill="#3b82f6"
-                  fillOpacity={0.3}
+                  fillOpacity={0.15}
                 />
                 <Area
                   type="monotone"
@@ -247,7 +227,7 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
                   stackId="2"
                   stroke="#10b981"
                   fill="#10b981"
-                  fillOpacity={0.3}
+                  fillOpacity={0.15}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -255,19 +235,19 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Task Status</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Task Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={taskStatusData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
+                  innerRadius={55}
+                  outerRadius={75}
+                  paddingAngle={3}
                   dataKey="value"
                 >
                   {taskStatusData.map((_, index) => (
@@ -279,13 +259,14 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
                     backgroundColor: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '8px',
+                    fontSize: '12px',
                   }}
                 />
               </PieChart>
             </ResponsiveContainer>
             <div className="mt-2 flex flex-wrap justify-center gap-2">
               {taskStatusData.map((item, index) => (
-                <Badge key={item.name} variant="outline" className="text-xs">
+                <Badge key={item.name} variant="outline" className="text-[10px]">
                   <span
                     className="mr-1 inline-block h-2 w-2 rounded-full"
                     style={{ backgroundColor: COLORS[index % COLORS.length] }}
@@ -300,20 +281,21 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle>Team Velocity</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Team Velocity</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <BarChart data={velocityData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="week" className="text-xs" />
-                <YAxis className="text-xs" />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" opacity={0.4} />
+                <XAxis dataKey="week" className="text-xs" tick={{ fontSize: 11 }} />
+                <YAxis className="text-xs" tick={{ fontSize: 11 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '8px',
+                    fontSize: '12px',
                   }}
                 />
                 <Bar dataKey="velocity" fill="#3b82f6" radius={[4, 4, 0, 0]} />
@@ -323,20 +305,21 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Member Productivity</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Member Productivity</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <BarChart data={memberProductivityData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis type="number" className="text-xs" />
-                <YAxis dataKey="name" type="category" width={100} className="text-xs" />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" opacity={0.4} />
+                <XAxis type="number" className="text-xs" tick={{ fontSize: 11 }} />
+                <YAxis dataKey="name" type="category" width={90} className="text-xs" tick={{ fontSize: 11 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '8px',
+                    fontSize: '12px',
                   }}
                 />
                 <Bar dataKey="tasks" fill="#8b5cf6" radius={[0, 4, 4, 0]} name="Tasks" />

@@ -12,12 +12,11 @@ import {
 } from 'cmdk';
 import { useRouter, useParams } from 'next/navigation';
 import {
-  File,
+  Plus,
   Layout,
   Search,
   Settings,
   Users,
-  Plus,
   BarChart3,
   ClipboardList,
   CheckSquare,

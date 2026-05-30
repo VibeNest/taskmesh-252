@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma';
 import redis from '@/lib/redis';
 import { logger } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const start = Date.now();
   const checks: Record<string, unknown> = {};

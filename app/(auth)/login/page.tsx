@@ -83,73 +83,61 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen overflow-hidden bg-white">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700" />
-
-      <div className="absolute inset-0">
-        <div className="absolute left-0 top-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-96 w-96 translate-x-1/3 translate-y-1/3 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/5 blur-2xl" />
-      </div>
-
-      <div className="relative z-10 hidden w-1/2 flex-col justify-between p-12 text-white lg:flex">
+    <div className="flex min-h-screen">
+      <div className="relative hidden w-1/2 flex-col justify-between bg-primary p-12 lg:flex">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
-            <Sparkles className="h-6 w-6" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">
+            <Sparkles className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-bold">TaskMesh</span>
+          <span className="text-lg font-semibold text-white">TaskMesh</span>
         </div>
 
         <div className="max-w-md">
-          <h1 className="mb-6 text-5xl font-bold leading-tight">
+          <h1 className="mb-4 text-4xl font-bold leading-tight text-white">
             Collaborate smarter,
             <br />
             deliver faster.
           </h1>
-          <p className="text-lg leading-relaxed text-white/80">
+          <p className="text-base leading-relaxed text-white/70">
             The modern workspace for high-performing teams. Manage projects, track progress, and
             ship products together.
           </p>
 
-          <div className="mt-10 flex gap-8">
-            <div>
-              <div className="text-3xl font-bold">10k+</div>
-              <div className="text-sm text-white/70">Teams</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold">1M+</div>
-              <div className="text-sm text-white/70">Tasks Completed</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold">99.9%</div>
-              <div className="text-sm text-white/70">Uptime</div>
-            </div>
+          <div className="mt-10 grid grid-cols-3 gap-8">
+            {[
+              ['10k+', 'Teams'],
+              ['1M+', 'Tasks Completed'],
+              ['99.9%', 'Uptime'],
+            ].map(([value, label]) => (
+              <div key={label}>
+                <div className="text-2xl font-bold text-white">{value}</div>
+                <div className="text-sm text-white/60">{label}</div>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="text-sm text-white/60">
-          &copy; {new Date().getFullYear()} TaskMesh. Built for modern teams.
-        </div>
+        <p className="text-sm text-white/40">
+          &copy; {new Date().getFullYear()} TaskMesh. All rights reserved.
+        </p>
       </div>
 
-      <div className="relative z-10 flex w-full items-center justify-center p-6 lg:w-1/2 lg:p-12">
-        <div className="w-full max-w-md space-y-8">
-          <div className="lg:hidden">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
-                <Sparkles className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">TaskMesh</span>
+      <div className="flex w-full items-center justify-center p-8 lg:w-1/2">
+        <div className="w-full max-w-sm">
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
+            <span className="text-lg font-semibold">TaskMesh</span>
           </div>
 
-          <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">Welcome back</h2>
-            <p className="text-gray-500">Enter your credentials to access your workspace</p>
+          <div className="mb-8 space-y-1">
+            <h2 className="text-2xl font-semibold tracking-tight">Welcome back</h2>
+            <p className="text-sm text-muted-foreground">Enter your credentials to continue</p>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+            <div className="mb-6 flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
               <svg
                 className="h-4 w-4 shrink-0"
                 fill="none"
@@ -169,67 +157,68 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                Email address
+              <label htmlFor="email" className="text-sm font-medium">
+                Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@company.com"
-                  className="h-11 pl-10"
+                  className="h-10 pl-10"
                   {...register('email')}
                 />
               </div>
-              {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="text-sm font-medium">
                   Password
                 </label>
-                <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-primary hover:text-primary/80"
+                >
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="Enter your password"
-                  className="h-11 pl-10"
+                  className="h-10 pl-10"
                   {...register('password')}
                 />
               </div>
-              {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="text-xs text-destructive">{errors.password.message}</p>
+              )}
             </div>
 
-            <Button
-              type="submit"
-              className="h-11 w-full bg-blue-600 font-medium text-white hover:bg-blue-700"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign in
             </Button>
           </form>
 
-          <div className="relative">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">or continue with</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <Button
               variant="outline"
-              className="h-11"
+              className="h-10"
               onClick={() => signIn('google', { callbackUrl: '/workspaces' })}
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -254,7 +243,7 @@ export default function LoginPage() {
             </Button>
             <Button
               variant="outline"
-              className="h-11"
+              className="h-10"
               onClick={() => signIn('github', { callbackUrl: '/workspaces' })}
             >
               <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -264,19 +253,19 @@ export default function LoginPage() {
             </Button>
           </div>
 
-          <div className="relative">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">quick demo</span>
+              <span className="bg-background px-2 text-muted-foreground">quick demo</span>
             </div>
           </div>
 
           <Button
             type="button"
             variant="outline"
-            className="h-11 w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+            className="h-10 w-full"
             onClick={handleGuestLogin}
             disabled={guestLoading}
           >
@@ -288,14 +277,14 @@ export default function LoginPage() {
             Try Demo (No Signup Needed)
           </Button>
 
-          <p className="text-center text-xs text-gray-400">
-            Demo account: demo@taskmesh.io / demo1234
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Demo: demo@taskmesh.io / demo1234
           </p>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-500">
-              Create an account
+            <Link href="/register" className="font-medium text-primary hover:text-primary/80">
+              Create one
             </Link>
           </p>
         </div>

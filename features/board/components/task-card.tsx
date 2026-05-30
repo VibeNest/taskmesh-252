@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,7 +27,6 @@ import {
   Pencil,
   Trash2,
   Calendar,
-  Flag,
 } from 'lucide-react';
 import { TaskWithDetails } from '@/types';
 import { getInitials, formatDate } from '@/lib/utils';
@@ -79,74 +76,74 @@ export function TaskCard({ task, workspaceId, boardId, isDragging }: TaskCardPro
     queryClient.invalidateQueries({ queryKey: ['board', boardId] });
   };
 
-  const priorityColors: Record<string, string> = {
-    low: 'bg-green-100 text-green-800',
-    medium: 'bg-yellow-100 text-yellow-800',
-    high: 'bg-red-100 text-red-800',
+  const priorityStyles: Record<string, string> = {
+    urgent: 'bg-destructive/10 text-destructive border-destructive/20',
+    high: 'bg-orange-50 text-orange-700 border-orange-200',
+    medium: 'bg-blue-50 text-blue-700 border-blue-200',
+    low: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   };
 
   return (
     <>
-      <Card
-        className={`cursor-pointer transition-shadow hover:shadow-md ${isDragging ? 'shadow-lg' : ''}`}
+      <div
+        className={`rounded-lg border bg-card p-3 transition-shadow hover:shadow-sm ${isDragging ? 'shadow-md' : ''}`}
         onClick={() => setIsOpen(true)}
       >
-        <CardContent className="p-3">
-          {task.priority && (
-            <Badge className={`mb-2 ${priorityColors[task.priority] || ''}`} variant="secondary">
-              <Flag className="mr-1 h-3 w-3" />
-              {task.priority}
-            </Badge>
-          )}
+        {task.priority && (
+          <span
+            className={`mb-2 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${priorityStyles[task.priority] || ''}`}
+          >
+            {task.priority}
+          </span>
+        )}
 
-          <p className="font-medium">{task.title}</p>
+        <p className="text-sm font-medium">{task.title}</p>
 
-          {task.description && (
-            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-              {task.description}
-            </p>
-          )}
+        {task.description && (
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+            {task.description}
+          </p>
+        )}
 
-          <div className="mt-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {task.assignee && (
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={task.assignee.image || undefined} />
-                  <AvatarFallback className="text-xs">
-                    {getInitials(task.assignee.name || '')}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-              {task.dueDate && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  {formatDate(task.dueDate)}
-                </div>
-              )}
-            </div>
-            {task._count?.comments ? (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <MessageSquare className="h-3 w-3" />
-                {task._count.comments}
-              </div>
-            ) : null}
+        <div className="mt-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {task.assignee && (
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={task.assignee.image || undefined} />
+                <AvatarFallback className="text-[8px]">
+                  {getInitials(task.assignee.name || '')}
+                </AvatarFallback>
+              </Avatar>
+            )}
+            {task.dueDate && (
+              <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <Calendar className="h-3 w-3" />
+                {formatDate(task.dueDate)}
+              </span>
+            )}
           </div>
-        </CardContent>
-      </Card>
+          {task._count?.comments ? (
+            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+              <MessageSquare className="h-3 w-3" />
+              {task._count.comments}
+            </span>
+          ) : null}
+        </div>
+      </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
               {isEditing ? (
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="text-lg font-semibold"
+                  className="text-base font-medium"
                   autoFocus
                 />
               ) : (
-                task.title
+                <span className="text-base">{task.title}</span>
               )}
             </DialogTitle>
             <DialogDescription>
@@ -156,6 +153,7 @@ export function TaskCard({ task, workspaceId, boardId, isDragging }: TaskCardPro
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Add a description..."
                   className="mt-2"
+                  rows={3}
                 />
               ) : (
                 task.description || 'No description'
@@ -168,9 +166,9 @@ export function TaskCard({ task, workspaceId, boardId, isDragging }: TaskCardPro
               <div className="flex gap-2">
                 {task.assignee && (
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-7 w-7">
                       <AvatarImage src={task.assignee.image || undefined} />
-                      <AvatarFallback>
+                      <AvatarFallback className="text-xs">
                         {getInitials(task.assignee.name || '')}
                       </AvatarFallback>
                     </Avatar>
@@ -180,18 +178,18 @@ export function TaskCard({ task, workspaceId, boardId, isDragging }: TaskCardPro
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" className="h-7 w-7">
+                    <MoreHorizontal className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setIsEditing(!isEditing)}>
-                    <Pencil className="mr-2 h-4 w-4" />
+                    <Pencil className="mr-2 h-3.5 w-3.5" />
                     {isEditing ? 'Cancel edit' : 'Edit'}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-                    <Trash2 className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                    <Trash2 className="mr-2 h-3.5 w-3.5" />
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -200,20 +198,20 @@ export function TaskCard({ task, workspaceId, boardId, isDragging }: TaskCardPro
 
             {isEditing ? (
               <div className="flex gap-2">
-                <Button onClick={handleSave} disabled={updateTask.isPending}>
+                <Button size="sm" onClick={handleSave} disabled={updateTask.isPending}>
                   Save changes
                 </Button>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
                   Cancel
                 </Button>
               </div>
             ) : null}
 
             <div className="border-t pt-4">
-              <h4 className="mb-2 font-semibold">Comments</h4>
+              <h4 className="mb-2 text-sm font-medium">Comments</h4>
 
               {typingUsers.length > 0 && (
-                <p className="mb-2 text-sm text-muted-foreground">
+                <p className="mb-2 text-xs text-muted-foreground">
                   {typingUsers.map((u) => u.name).join(', ')} typing...
                 </p>
               )}
@@ -221,36 +219,37 @@ export function TaskCard({ task, workspaceId, boardId, isDragging }: TaskCardPro
               <div className="space-y-3">
                 {task.comments?.map((c) => (
                   <div key={c.id} className="flex gap-3">
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-7 w-7">
                       <AvatarImage src={c.author.image || undefined} />
-                      <AvatarFallback>
+                      <AvatarFallback className="text-xs">
                         {getInitials(c.author.name || '')}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">{c.author.name}</span>
+                        <span className="text-sm font-medium">{c.author.name}</span>
                         <span className="text-xs text-muted-foreground">
                           {formatDate(c.createdAt)}
                         </span>
                       </div>
-                      <p className="text-sm">{c.content}</p>
+                      <p className="text-sm text-muted-foreground">{c.content}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-4 flex gap-2">
+              <div className="mt-3 flex gap-2">
                 <Textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="Add a comment..."
-                  className="min-h-[80px]"
+                  className="min-h-[60px] text-sm"
                 />
               </div>
               <Button
                 onClick={handleAddComment}
                 disabled={!comment.trim() || createComment.isPending}
+                size="sm"
                 className="mt-2"
               >
                 Add comment

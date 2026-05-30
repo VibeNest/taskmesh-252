@@ -53,27 +53,25 @@ export function SubtaskList({ subtasks, onToggle, onCreate, onDelete }: SubtaskL
 
   if (totalCount === 0 && !isAdding) {
     return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start text-muted-foreground"
+      <button
+        className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent"
         onClick={() => setIsAdding(true)}
       >
-        <Plus className="mr-2 h-4 w-4" />
+        <Plus className="h-3.5 w-3.5" />
         Add subtask
-      </Button>
+      </button>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {totalCount > 0 && (
         <div>
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium">
-              Subtasks ({completedCount}/{totalCount})
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-xs font-medium">
+              {completedCount}/{totalCount}
             </span>
-            <span className="text-xs text-muted-foreground">{progressPercent}%</span>
+            <span className="text-[10px] text-muted-foreground">{progressPercent}%</span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-muted">
             <div
@@ -84,19 +82,19 @@ export function SubtaskList({ subtasks, onToggle, onCreate, onDelete }: SubtaskL
         </div>
       )}
 
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {subtasks
           .sort((a, b) => a.position - b.position)
           .map((subtask) => (
             <div
               key={subtask.id}
-              className="group flex items-center gap-2 rounded-md p-2 hover:bg-accent/50"
+              className="group flex items-center gap-2 rounded-md p-1.5 hover:bg-accent/50"
             >
-              <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+              <GripVertical className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100" />
               <Checkbox
                 checked={subtask.completed}
                 onCheckedChange={(checked) => onToggle(subtask.id, Boolean(checked))}
-                className="flex-shrink-0"
+                className="h-3.5 w-3.5 flex-shrink-0"
               />
               <span
                 className={`flex-1 text-sm ${
@@ -108,19 +106,17 @@ export function SubtaskList({ subtasks, onToggle, onCreate, onDelete }: SubtaskL
               {subtask.assignee && (
                 <Avatar className="h-5 w-5">
                   <AvatarImage src={subtask.assignee.image || undefined} />
-                  <AvatarFallback className="text-[10px]">
+                  <AvatarFallback className="text-[8px]">
                     {subtask.assignee.name?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 opacity-0 group-hover:opacity-100"
+              <button
+                className="flex h-5 w-5 items-center justify-center rounded opacity-0 hover:bg-accent group-hover:opacity-100"
                 onClick={() => onDelete(subtask.id)}
               >
                 <Trash2 className="h-3 w-3 text-muted-foreground" />
-              </Button>
+              </button>
             </div>
           ))}
       </div>
@@ -132,15 +128,16 @@ export function SubtaskList({ subtasks, onToggle, onCreate, onDelete }: SubtaskL
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="h-8 text-sm"
+            className="h-7 text-xs"
             autoFocus
           />
-          <Button size="sm" onClick={handleCreate} disabled={!newTitle.trim()}>
+          <Button size="sm" className="h-7 text-xs" onClick={handleCreate} disabled={!newTitle.trim()}>
             Add
           </Button>
           <Button
             variant="ghost"
             size="sm"
+            className="h-7 text-xs"
             onClick={() => {
               setNewTitle('');
               setIsAdding(false);
@@ -152,15 +149,13 @@ export function SubtaskList({ subtasks, onToggle, onCreate, onDelete }: SubtaskL
       )}
 
       {!isAdding && totalCount > 0 && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start text-muted-foreground"
+        <button
+          className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent"
           onClick={() => setIsAdding(true)}
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="h-3.5 w-3.5" />
           Add subtask
-        </Button>
+        </button>
       )}
     </div>
   );
