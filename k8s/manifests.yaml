@@ -1,0 +1,402 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: taskmesh
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: taskmesh-config
+  namespace: taskmesh
+data:
+  NODE_ENV: "production"
+  NEXT_PUBLIC_APP_URL: "https://taskmesh.example.com"
+  NEXT_PUBLIC_SOCKET_URL: "wss://taskmesh.example.com"
+  DATABASE_URL: "postgresql://postgres:postgres@taskmesh-postgres:5432/taskmesh"
+  REDIS_URL: "redis://taskmesh-redis:6379"
+  LOG_LEVEL: "info"
+  S3_REGION: "us-east-1"
+  S3_BUCKET: "taskmesh-uploads"
+  S3_ENDPOINT: "http://taskmesh-minio:9000"
+  S3_FORCE_PATH_STYLE: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: taskmesh-secrets
+  namespace: taskmesh
+type: Opaque
+stringData:
+  AUTH_SECRET: "change-this-in-production"
+  AUTH_URL: "https://taskmesh.example.com"
+  OPENAI_API_KEY: ""
+  S3_ACCESS_KEY_ID: "minioadmin"
+  S3_SECRET_ACCESS_KEY: "minioadmin"
+  EMAIL_SERVER_HOST: ""
+  EMAIL_SERVER_USER: ""
+  EMAIL_SERVER_PASSWORD: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskmesh-app
+  namespace: taskmesh
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: taskmesh
+      tier: app
+  template:
+    metadata:
+      labels:
+        app: taskmesh
+        tier: app
+    spec:
+      containers:
+        - name: app
+          image: taskmesh-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+            - containerPort: 3001
+              name: socket
+          envFrom:
+            - configMapRef:
+                name: taskmesh-config
+            - secretRef:
+                name: taskmesh-secrets
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskmesh-app
+  namespace: taskmesh
+spec:
+  selector:
+    app: taskmesh
+    tier: app
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+    - name: socket
+      port: 3001
+      targetPort: 3001
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskmesh-ingress
+  namespace: taskmesh
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "taskmesh-app"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - taskmesh.example.com
+      secretName: taskmesh-tls
+  rules:
+    - host: taskmesh.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: taskmesh-app
+                port:
+                  number: 3000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: taskmesh-app-hpa
+  namespace: taskmesh
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: taskmesh-app
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: taskmesh-app-pdb
+  namespace: taskmesh
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: taskmesh
+      tier: app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskmesh-redis
+  namespace: taskmesh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taskmesh
+      tier: redis
+  template:
+    metadata:
+      labels:
+        app: taskmesh
+        tier: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          args: ["--appendonly", "yes"]
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: taskmesh-redis-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskmesh-redis
+  namespace: taskmesh
+spec:
+  selector:
+    app: taskmesh
+    tier: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: taskmesh-redis-pvc
+  namespace: taskmesh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: taskmesh-postgres
+  namespace: taskmesh
+spec:
+  serviceName: taskmesh-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taskmesh
+      tier: postgres
+  template:
+    metadata:
+      labels:
+        app: taskmesh
+        tier: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+            - name: POSTGRES_DB
+              value: "taskmesh"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: taskmesh-postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskmesh-postgres
+  namespace: taskmesh
+spec:
+  selector:
+    app: taskmesh
+    tier: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+  clusterIP: None
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: taskmesh-postgres-pvc
+  namespace: taskmesh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskmesh-minio
+  namespace: taskmesh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taskmesh
+      tier: minio
+  template:
+    metadata:
+      labels:
+        app: taskmesh
+        tier: minio
+    spec:
+      containers:
+        - name: minio
+          image: minio/minio:latest
+          args: ["server", "/data", "--console-address", ":9001"]
+          ports:
+            - containerPort: 9000
+            - containerPort: 9001
+          env:
+            - name: MINIO_ROOT_USER
+              value: "minioadmin"
+            - name: MINIO_ROOT_PASSWORD
+              value: "minioadmin"
+          volumeMounts:
+            - name: minio-data
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /minio/health/live
+              port: 9000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: minio-data
+          persistentVolumeClaim:
+            claimName: taskmesh-minio-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskmesh-minio
+  namespace: taskmesh
+spec:
+  selector:
+    app: taskmesh
+    tier: minio
+  ports:
+    - name: api
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: taskmesh-minio-pvc
+  namespace: taskmesh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi

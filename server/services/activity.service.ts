@@ -1,5 +1,6 @@
 import { ActivityAction, Prisma } from '@prisma/client';
 import { activityRepository } from '@/server/repositories';
+import { DomainEvent, DomainEventType } from '@/lib/events';
 
 export class ActivityService {
   async log(
@@ -159,6 +160,43 @@ export class ActivityService {
       taskId,
       undefined,
       commentId
+    );
+  }
+
+  async logFromEvent(event: DomainEvent): Promise<void> {
+    const actionMap: Partial<Record<DomainEventType, ActivityAction>> = {
+      [DomainEventType.WORKSPACE_CREATED]: ActivityAction.WORKSPACE_CREATED,
+      [DomainEventType.WORKSPACE_UPDATED]: ActivityAction.WORKSPACE_UPDATED,
+      [DomainEventType.MEMBER_JOINED]: ActivityAction.MEMBER_JOINED,
+      [DomainEventType.MEMBER_REMOVED]: ActivityAction.MEMBER_REMOVED,
+      [DomainEventType.BOARD_CREATED]: ActivityAction.BOARD_CREATED,
+      [DomainEventType.BOARD_UPDATED]: ActivityAction.BOARD_UPDATED,
+      [DomainEventType.BOARD_DELETED]: ActivityAction.BOARD_DELETED,
+      [DomainEventType.TASK_CREATED]: ActivityAction.TASK_CREATED,
+      [DomainEventType.TASK_UPDATED]: ActivityAction.TASK_UPDATED,
+      [DomainEventType.TASK_MOVED]: ActivityAction.TASK_MOVED,
+      [DomainEventType.TASK_DELETED]: ActivityAction.TASK_DELETED,
+      [DomainEventType.TASK_ASSIGNED]: ActivityAction.TASK_ASSIGNED,
+      [DomainEventType.COMMENT_CREATED]: ActivityAction.COMMENT_ADDED,
+      [DomainEventType.COMMENT_DELETED]: ActivityAction.COMMENT_DELETED,
+      [DomainEventType.INVITATION_SENT]: ActivityAction.INVITATION_SENT,
+    };
+
+    const action = actionMap[event.type];
+    if (!action) return;
+
+    const taskId = event.aggregateType === 'Task' ? event.aggregateId : undefined;
+    const boardId = event.payload?.boardId as string | undefined;
+
+    await this.log(
+      action,
+      event.aggregateType.toLowerCase(),
+      event.aggregateId,
+      event.metadata.userId || '',
+      event.metadata.workspaceId || '',
+      event.payload as Prisma.InputJsonValue,
+      taskId,
+      boardId
     );
   }
 }

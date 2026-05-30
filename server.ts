@@ -10,6 +10,12 @@ import {
 } from '@/types/socket';
 import prisma from '@/lib/prisma';
 import redis from '@/lib/redis';
+import { logger } from '@/lib/logger';
+import { initTelemetry, recordSocketConnection, setActiveUsers } from '@/lib/telemetry';
+import { rateLimiter } from '@/lib/rate-limiter';
+import { eventBus } from '@/lib/event-bus';
+import { featureFlags } from '@/lib/feature-flags';
+import { initializeWorkers } from '@/workers';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
@@ -21,7 +27,11 @@ const handle = app.getRequestHandler();
 const PRESENCE_TTL = 60;
 const presence = new Map<string, PresenceUser>();
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
+  initTelemetry();
+  await featureFlags.initialize();
+  await initializeWorkers();
+
   const httpServer = createServer((req, res) => {
     const parsedUrl = parse(req.url!, true);
     handle(req, res, parsedUrl);
@@ -34,15 +44,29 @@ app.prepare().then(() => {
       credentials: true,
     },
     transports: ['websocket', 'polling'],
+    maxHttpBufferSize: 1e6,
+  });
+
+  io.use(async (socket, next) => {
+    const userId = socket.handshake.auth.userId;
+    if (!userId) {
+      return next(new Error('Authentication required'));
+    }
+
+    const ip = socket.handshake.address;
+    const result = await rateLimiter.check('socket:connect', userId || ip);
+    if (!result.allowed) {
+      return next(new Error('Rate limit exceeded. Try again later.'));
+    }
+
+    socket.data.userId = userId;
+    next();
   });
 
   io.on('connection', async (socket: TypedSocket) => {
-    const userId = socket.handshake.auth.userId;
-
-    if (!userId) {
-      socket.disconnect();
-      return;
-    }
+    const userId = socket.data.userId;
+    recordSocketConnection(1);
+    setActiveUsers(presence.size);
 
     socket.data.userId = userId;
 
@@ -195,12 +219,39 @@ app.prepare().then(() => {
     });
 
     socket.on('disconnect', async () => {
+      recordSocketConnection(-1);
       await cleanupPresence(socket);
+      setActiveUsers(presence.size);
     });
   });
 
+  const metricsInterval = setInterval(async () => {
+    setActiveUsers(presence.size);
+    try {
+      const queueMetrics = await eventBus.getQueueMetrics();
+      for (const [queue, metrics] of Object.entries(queueMetrics)) {
+        const { getRegistry } = await import('@/lib/telemetry');
+        const registry = getRegistry();
+        if (registry) {
+          const gauge = registry.getSingleMetric('worker_queue_size');
+          if (gauge && 'set' in gauge) {
+            (gauge as any).set({ queue }, (metrics as any).waiting || 0);
+          }
+        }
+      }
+    } catch {
+      // metrics collection best-effort
+    }
+  }, 30000);
+
+  process.on('SIGTERM', async () => {
+    clearInterval(metricsInterval);
+    await eventBus.close();
+    process.exit(0);
+  });
+
   httpServer.listen(port, () => {
-    console.log(`> Ready on http://${hostname}:${port}`);
+    logger.info({ host: hostname, port }, 'Server ready');
   });
 });
 

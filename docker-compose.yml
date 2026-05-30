@@ -57,6 +57,50 @@ services:
       - /app/node_modules
       - /app/.next
 
+  minio:
+    image: minio/minio:latest
+    container_name: collaborative_workspace_minio
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: collaborative_workspace_worker
+    command: npx tsx workers/index.ts
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/collaborative_workspace
+      REDIS_URL: redis://redis:6379
+      AUTH_SECRET: development-secret-change-in-production
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_SECRET_ACCESS_KEY: minioadmin
+      S3_BUCKET: taskmesh-uploads
+      S3_FORCE_PATH_STYLE: 'true'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+
 volumes:
   postgres_data:
   redis_data:
+  minio_data:

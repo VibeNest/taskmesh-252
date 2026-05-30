@@ -104,6 +104,9 @@ model User {
   subtasksAssigned Subtask[] @relation("SubtaskAssignee")
   attachmentsUploaded Attachment[] @relation("AttachmentUploader")
   taskViewsCreated TaskView[] @relation("TaskViewCreator")
+  loginHistory LoginHistory[]
+  userSessions UserSession[]
+  fileAttachments FileAttachment[]
 
   @@map("users")
 }
@@ -461,4 +464,106 @@ enum SprintStatus {
   ACTIVE
   COMPLETED
   CANCELLED
+}
+
+enum FeatureFlagName {
+  AI_TASK_ASSISTANT
+  AI_SPRINT_PLANNER
+  ADVANCED_ANALYTICS
+  BETA_BOARD_VIEW
+  EXPORT_CSV
+  GLOBAL_SEARCH
+  IMMUTABLE_AUDIT_LOGS
+  NATIVE_AUTH
+}
+
+model LoginHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  email     String?
+  ipAddress String?
+  userAgent String?
+  device    String?
+  location  String?
+  success   Boolean  @default(true)
+  failReason String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("login_history")
+}
+
+model UserSession {
+  id          String   @id @default(cuid())
+  userId      String
+  sessionToken String  @unique
+  ipAddress   String?
+  userAgent   String?
+  device      String?
+  isActive    Boolean  @default(true)
+  lastActiveAt DateTime @default(now())
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionToken])
+  @@map("user_sessions")
+}
+
+model ImmutableAuditLog {
+  id           String   @id @default(cuid())
+  action       String
+  entityType   String
+  entityId     String
+  userId       String
+  workspaceId  String?
+  metadata     Json?
+  ipAddress    String?
+  userAgent    String?
+  hash         String   @unique
+  previousHash String
+  timestamp    DateTime @default(now())
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([timestamp])
+  @@map("immutable_audit_logs")
+}
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  name        FeatureFlagName @unique
+  key         String   @unique
+  enabled     Boolean  @default(false)
+  description String?
+  rules       Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("feature_flags")
+}
+
+model FileAttachment {
+  id          String   @id @default(cuid())
+  fileName    String
+  fileKey     String
+  fileSize    Int
+  mimeType    String
+  entityType  String
+  entityId    String
+  uploadedById String
+  workspaceId String?
+  createdAt   DateTime @default(now())
+
+  uploadedBy User @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([workspaceId])
+  @@map("file_attachments")
 }
