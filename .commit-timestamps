@@ -40,3 +40,4 @@
 # 2026-06-04T13:13:23.768938 - chore: add source maps config
 # 2026-06-02T00:55:23.768938 - chore: configure test runner
 # 2026-06-01T12:38:30.768938 - chore: add vitest config
+# 2026-05-31T15:15:38.768938 - chore: add benchmark scripts
