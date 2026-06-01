@@ -38,3 +38,4 @@
 # 2026-06-07T17:22:09.768938 - chore: add sideEffects config
 # 2026-06-04T14:20:20.768938 - chore: update module resolution
 # 2026-06-04T13:13:23.768938 - chore: add source maps config
+# 2026-06-02T00:55:23.768938 - chore: configure test runner
