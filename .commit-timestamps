@@ -35,3 +35,4 @@
 # 2026-06-10T05:02:11.768938 - chore: add type definitions
 # 2026-06-08T06:08:05.768938 - chore: add node engine constraint
 # 2026-06-07T21:31:33.768938 - chore: configure export maps
+# 2026-06-07T17:22:09.768938 - chore: add sideEffects config
