@@ -7,7 +7,6 @@ import { useSession, signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   LayoutGrid,
   BarChart3,
@@ -23,6 +22,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  Home,
 } from 'lucide-react';
 import { GlobalSearch } from '@/components/global-search';
 import { NotificationCenter } from '@/components/notification-center';
@@ -130,24 +130,54 @@ export function DashboardLayout({
         </div>
 
         <div className="flex flex-1 flex-col gap-1 p-2">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent',
-                  isActive ? 'bg-accent font-medium text-foreground' : 'text-muted-foreground',
-                  sidebarCollapsed && 'justify-center px-0'
-                )}
-                title={sidebarCollapsed ? item.label : undefined}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                {!sidebarCollapsed && <span>{item.label}</span>}
-              </Link>
-            );
-          })}
+          {/* Global navigation */}
+          <GlobalNavLink
+            href="/"
+            icon={Home}
+            label="Dashboard"
+            pathname={pathname}
+            collapsed={sidebarCollapsed}
+          />
+          <GlobalNavLink
+            href="/profile"
+            icon={User}
+            label="Profile"
+            pathname={pathname}
+            collapsed={sidebarCollapsed}
+          />
+          <GlobalNavLink
+            href="/settings"
+            icon={Settings}
+            label="Settings"
+            pathname={pathname}
+            collapsed={sidebarCollapsed}
+          />
+
+          <div className="my-2 h-px bg-border" />
+
+          {navItems.length > 0 && (
+            <>
+              {navItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent',
+                      isActive ? 'bg-accent font-medium text-foreground' : 'text-muted-foreground',
+                      sidebarCollapsed && 'justify-center px-0'
+                    )}
+                    title={sidebarCollapsed ? item.label : undefined}
+                  >
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    {!sidebarCollapsed && <span>{item.label}</span>}
+                  </Link>
+                );
+              })}
+              <div className="my-2 h-px bg-border" />
+            </>
+          )}
 
           {sidebarCollapsed && (
             <div className="my-2 h-px bg-border" />
@@ -155,7 +185,6 @@ export function DashboardLayout({
 
           {!sidebarCollapsed && (
             <>
-              <div className="my-2 h-px bg-border" />
               <div className="mb-1 flex items-center justify-between px-2.5">
                 <span className="text-xs font-medium text-muted-foreground">Workspaces</span>
                 <Link href="/workspaces">
@@ -216,6 +245,12 @@ export function DashboardLayout({
               </Button>
             </div>
             <div className="flex flex-col gap-1 p-2">
+              <MobileNavLink href="/" icon={Home} label="Dashboard" pathname={pathname} onClick={() => setMobileSidebarOpen(false)} />
+              <MobileNavLink href="/profile" icon={User} label="Profile" pathname={pathname} onClick={() => setMobileSidebarOpen(false)} />
+              <MobileNavLink href="/settings" icon={Settings} label="Settings" pathname={pathname} onClick={() => setMobileSidebarOpen(false)} />
+
+              <div className="my-2 h-px bg-border" />
+
               {navItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
@@ -223,7 +258,7 @@ export function DashboardLayout({
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      'flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent',
+                      'flex items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent',
                       isActive ? 'bg-accent font-medium' : 'text-muted-foreground'
                     )}
                     onClick={() => setMobileSidebarOpen(false)}
@@ -332,6 +367,14 @@ export function DashboardLayout({
                   <User className="h-3.5 w-3.5" />
                   Profile
                 </Link>
+                <Link
+                  href="/settings"
+                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
+                  onClick={() => setProfileOpen(false)}
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                  Settings
+                </Link>
                 <div className="my-0.5 h-px bg-border" />
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}
@@ -348,5 +391,72 @@ export function DashboardLayout({
         <main className="flex-1">{children}</main>
       </div>
     </div>
+  );
+}
+
+/**
+ * A sidebar navigation link used in the desktop sidebar.
+ * Highlights when the current path matches the link href.
+ */
+function GlobalNavLink({
+  href,
+  icon: Icon,
+  label,
+  pathname,
+  collapsed,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  pathname: string;
+  collapsed: boolean;
+}) {
+  const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
+  return (
+    <Link
+      href={href}
+      className={cn(
+        'flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent',
+        isActive ? 'bg-accent font-medium text-foreground' : 'text-muted-foreground',
+        collapsed && 'justify-center px-0'
+      )}
+      title={collapsed ? label : undefined}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      {!collapsed && <span>{label}</span>}
+    </Link>
+  );
+}
+
+/**
+ * A navigation link used in the mobile sidebar drawer.
+ * Highlights when the current path matches the link href.
+ */
+function MobileNavLink({
+  href,
+  icon: Icon,
+  label,
+  pathname,
+  onClick,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  pathname: string;
+  onClick: () => void;
+}) {
+  const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
+  return (
+    <Link
+      href={href}
+      className={cn(
+        'flex items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent',
+        isActive ? 'bg-accent font-medium' : 'text-muted-foreground'
+      )}
+      onClick={onClick}
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </Link>
   );
 }
