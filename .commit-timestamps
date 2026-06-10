@@ -31,3 +31,4 @@
 # 2026-06-14T07:54:32.768938 - chore: add workspace config
 # 2026-06-12T22:02:25.768938 - chore: configure turborepo
 # 2026-06-12T06:23:10.768938 - chore: update docker compose versions
+# 2026-06-10T20:56:19.768938 - chore: pin dependency versions
