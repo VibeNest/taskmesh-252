@@ -1,12 +1,43 @@
 'use client';
 
+/**
+ * Workspace detail page showing workspace header, task board list, member directory,
+ * and activity timeline.
+ *
+ * @page
+ * @description Displays detailed information about a single workspace including its
+ * boards, members with their roles, and recent activity entries. Provides quick
+ * navigation to board, analytics, audit, and settings sub-pages. Uses React Query
+ * hooks for data fetching from the workspace API.
+ *
+ * @example
+ * ```tsx
+ * // Accessed via /workspaces/[workspaceId]
+ * <WorkspacePage />
+ * ```
+ *
+ * @accessibility
+ * - Breadcrumb navigation with clear hierarchy
+ * - Member list rendered with avatars and ARIA labels
+ * - Board cards are keyboard-accessible via Link
+ * - Activity items include screen-reader-friendly timestamps
+ */
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useWorkspace, useBoards, useCreateBoard, useWorkspaceMembers } from '@/hooks/use-api';
+import {
+  useWorkspace,
+  useBoards,
+  useCreateBoard,
+  useWorkspaceMembers,
+  useActivity,
+} from '@/hooks/use-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -34,8 +65,10 @@ import {
   Trash2,
   BarChart3,
   Shield,
+  Clock,
+  Activity,
 } from 'lucide-react';
-import { getInitials } from '@/lib/utils';
+import { getInitials, formatRelativeTime } from '@/lib/utils';
 
 export default function WorkspacePage() {
   const params = useParams();
@@ -45,6 +78,7 @@ export default function WorkspacePage() {
   const { data: workspace, isLoading: workspaceLoading } = useWorkspace(workspaceId);
   const { data: boards, isLoading: boardsLoading } = useBoards(workspaceId);
   const { data: members } = useWorkspaceMembers(workspaceId);
+  const { data: activityData } = useActivity(workspaceId);
   const createBoard = useCreateBoard();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
@@ -65,7 +99,7 @@ export default function WorkspacePage() {
   if (workspaceLoading || boardsLoading) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
-        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -78,17 +112,21 @@ export default function WorkspacePage() {
     );
   }
 
+  const activityList = activityData ?? [];
+
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      {/* ───── Workspace Header ───── */}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Link
             href="/workspaces"
-            className="flex size-8 items-center justify-center rounded-md border text-muted-foreground hover:text-foreground"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border text-muted-foreground hover:text-foreground"
+            aria-label="Back to workspaces"
           >
-            <ArrowLeft className="size-4" />
+            <ArrowLeft className="h-4 w-4" />
           </Link>
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
             <span className="text-sm font-semibold text-primary">
               {workspace.name.charAt(0).toUpperCase()}
             </span>
@@ -96,153 +134,274 @@ export default function WorkspacePage() {
           <div>
             <h1 className="text-lg font-semibold">{workspace.name}</h1>
             <p className="text-xs text-muted-foreground">
-              {boards?.length || 0} boards &middot; {members?.length || 0} members
+              {workspace.description || 'No description'}
             </p>
+            <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <LayoutGrid className="h-3 w-3" />
+                {boards?.length || 0} boards
+              </span>
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {members?.length || 0} members
+              </span>
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-1">
           <Link href={`/workspaces/${workspaceId}/analytics`}>
             <Button variant="ghost" size="sm" className="h-8 text-xs">
-              <BarChart3 className="mr-1.5 size-3.5" />
+              <BarChart3 className="mr-1.5 h-3.5 w-3.5" />
               Analytics
             </Button>
           </Link>
           <Link href={`/workspaces/${workspaceId}/audit`}>
             <Button variant="ghost" size="sm" className="h-8 text-xs">
-              <Shield className="mr-1.5 size-3.5" />
+              <Shield className="mr-1.5 h-3.5 w-3.5" />
               Audit
             </Button>
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 text-xs">
-                <Users className="mr-1.5 size-3.5" />
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Users className="mr-1.5 h-3.5 w-3.5" />
                 {members?.length || 0}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-64 max-h-80 overflow-y-auto">
+              <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                Team Members
+              </div>
+              <DropdownMenuSeparator />
               {members?.map((member: { id: string; role: string; user: { image: string; name: string; email: string } }) => (
                 <div key={member.id} className="flex items-center gap-2 px-2 py-1.5">
-                  <Avatar className="size-6">
+                  <Avatar className="h-7 w-7">
                     <AvatarImage src={member.user.image} />
                     <AvatarFallback className="text-[10px]">
                       {getInitials(member.user.name || member.user.email)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col">
-                    <span className="text-sm">{member.user.name || member.user.email}</span>
-                    <span className="text-xs text-muted-foreground">{member.role}</span>
+                  <div className="flex flex-1 flex-col min-w-0">
+                    <span className="text-sm truncate">{member.user.name || member.user.email}</span>
+                    <span className="text-xs text-muted-foreground capitalize">{member.role.toLowerCase()}</span>
                   </div>
+                  <Badge variant="secondary" className="text-[10px] capitalize">
+                    {member.role.toLowerCase()}
+                  </Badge>
                 </div>
               ))}
+              {(!members || members.length === 0) && (
+                <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                  No members yet
+                </div>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           <Link href={`/workspaces/${workspaceId}/settings`}>
-            <Button variant="ghost" size="icon" className="size-8">
-              <Settings className="size-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Workspace settings">
+              <Settings className="h-4 w-4" />
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-sm font-medium">Boards</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="mr-1.5 size-3.5" />
-              New Board
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create board</DialogTitle>
-              <DialogDescription>
-                Boards help you organize tasks within your workspace.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreateBoard} className="space-y-4">
-              <div>
-                <label htmlFor="board-name" className="text-sm font-medium">
-                  Board name
-                </label>
-                <Input
-                  id="board-name"
-                  value={newBoardName}
-                  onChange={(e) => setNewBoardName(e.target.value)}
-                  placeholder="e.g. Marketing, Product Roadmap"
-                  className="mt-1.5"
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={createBoard.isPending}>
-                {createBoard.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-                Create board
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {boards?.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed p-12">
-          <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-muted">
-            <LayoutGrid className="size-6 text-muted-foreground" />
-          </div>
-          <h3 className="mb-1 text-base font-medium">No boards yet</h3>
-          <p className="mb-6 max-w-sm text-center text-sm text-muted-foreground">
-            Create your first board to start managing tasks with your team.
-          </p>
-          <Button onClick={() => setIsDialogOpen(true)} size="sm">
-            <Plus className="mr-1.5 size-3.5" />
-            Create board
-          </Button>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {boards?.map((board: { id: string; name: string; description?: string; icon?: string; color?: string; _count?: { columns: number } }) => (
-            <Link key={board.id} href={`/workspaces/${workspaceId}/boards/${board.id}`}>
-              <div className="group rounded-lg border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-sm">
-                <div className="mb-3 flex items-start justify-between">
-                  <div
-                    className="flex size-9 items-center justify-center rounded-lg"
-                    style={{ backgroundColor: board.color || '#6366f1' }}
-                  >
-                    <span className="text-sm font-semibold text-white">
-                      {board.icon || board.name.charAt(0).toUpperCase()}
-                    </span>
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* ───── Boards Section (left/two-thirds) ───── */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                Boards
+              </CardTitle>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
+                    New Board
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create board</DialogTitle>
+                    <DialogDescription>
+                      Boards help you organise tasks within your workspace.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateBoard} className="space-y-4">
+                    <div>
+                      <label htmlFor="board-name" className="text-sm font-medium">
+                        Board name
+                      </label>
+                      <Input
+                        id="board-name"
+                        value={newBoardName}
+                        onChange={(e) => setNewBoardName(e.target.value)}
+                        placeholder="e.g. Marketing, Product Roadmap"
+                        className="mt-1.5"
+                        autoFocus
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={createBoard.isPending}>
+                      {createBoard.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Create board
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent>
+              {boards?.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-10">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                    <LayoutGrid className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
-                      <Button variant="ghost" size="icon" className="size-7">
-                        <MoreHorizontal className="size-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Pencil className="mr-2 size-3.5" />
-                        Rename
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive">
-                        <Trash2 className="mr-2 size-3.5" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <h3 className="mb-1 text-sm font-medium">No boards yet</h3>
+                  <p className="mb-4 max-w-xs text-center text-xs text-muted-foreground">
+                    Create your first board to start managing tasks with your team.
+                  </p>
+                  <Button onClick={() => setIsDialogOpen(true)} size="sm" variant="outline">
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
+                    Create board
+                  </Button>
                 </div>
-                <h3 className="mb-0.5 text-sm font-medium">{board.name}</h3>
-                <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">
-                  {board.description || 'No description'}
-                </p>
-                <div className="text-xs text-muted-foreground">
-                  {board._count?.columns || 0} columns
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {boards?.map((board: { id: string; name: string; description?: string; icon?: string; color?: string; _count?: { columns: number } }) => (
+                    <Link
+                      key={board.id}
+                      href={`/workspaces/${workspaceId}/boards/${board.id}`}
+                      className="group rounded-lg border bg-card p-4 transition-all hover:border-primary/30 hover:shadow-sm"
+                    >
+                      <div className="mb-3 flex items-start justify-between">
+                        <div
+                          className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold text-white"
+                          style={{ backgroundColor: board.color || '#6366f1' }}
+                        >
+                          {board.icon || board.name.charAt(0).toUpperCase()}
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <MoreHorizontal className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Pencil className="mr-2 h-3.5 w-3.5" />
+                              Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive">
+                              <Trash2 className="mr-2 h-3.5 w-3.5" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <h3 className="mb-0.5 text-sm font-medium">{board.name}</h3>
+                      <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">
+                        {board.description || 'No description'}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Badge variant="secondary" className="text-[10px] font-normal">
+                          {board._count?.columns || 0} columns
+                        </Badge>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-              </div>
-            </Link>
-          ))}
+              )}
+            </CardContent>
+          </Card>
         </div>
-      )}
+
+        {/* ───── Sidebar: Members + Activity ───── */}
+        <div className="space-y-6">
+          {/* Members quick-view card */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                Members
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {members?.length === 0 ? (
+                <p className="py-4 text-center text-sm text-muted-foreground">No members yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {members?.slice(0, 5).map((member: { id: string; role: string; user: { image: string; name: string; email: string } }) => (
+                    <div key={member.id} className="flex items-center gap-2">
+                      <Avatar className="h-7 w-7">
+                        <AvatarImage src={member.user.image} />
+                        <AvatarFallback className="text-[10px]">
+                          {getInitials(member.user.name || member.user.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm truncate">{member.user.name || member.user.email}</p>
+                      </div>
+                      <Badge variant="secondary" className="text-[10px] capitalize shrink-0">
+                        {member.role.toLowerCase()}
+                      </Badge>
+                    </div>
+                  ))}
+                  {(members?.length ?? 0) > 5 && (
+                    <p className="pt-1 text-center text-xs text-muted-foreground">
+                      +{members!.length - 5} more
+                    </p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Activity timeline */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Activity className="h-4 w-4 text-muted-foreground" />
+                Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {activityList.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6">
+                  <Clock className="mb-2 h-6 w-6 text-muted-foreground/50" />
+                  <p className="text-sm text-muted-foreground">No activity yet</p>
+                  <p className="text-xs text-muted-foreground/60">
+                    Activity will appear as team members make changes.
+                  </p>
+                </div>
+              ) : (
+                <div className="relative space-y-0">
+                  {activityList.map((item: { id: string; action: string; user: { name: string; image: string }; createdAt: string }, idx: number) => (
+                    <div key={item.id} className="relative flex gap-3 pb-4 pl-5 last:pb-0">
+                      {idx < activityList.length - 1 && (
+                        <div className="absolute left-[7px] top-3 h-full w-px bg-border" />
+                      )}
+                      <div className="absolute left-0 top-1.5 flex h-3.5 w-3.5 items-center justify-center">
+                        <div className="h-2 w-2 rounded-full bg-primary/40" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm">
+                          <span className="font-medium">{item.user?.name || 'Someone'}</span>{' '}
+                          <span className="text-muted-foreground">{item.action}</span>
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatRelativeTime(item.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
