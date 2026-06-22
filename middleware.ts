@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { auth } from '@/auth';
-import { rateLimiter } from '@/lib/rate-limiter';
+import { auth } from '@/lib/auth-middleware';
 
 const publicPaths = ['/login', '/register', '/api/auth'];
 const apiPaths = ['/api/'];

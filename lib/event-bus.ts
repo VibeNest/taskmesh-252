@@ -20,7 +20,7 @@ export class EventBus {
   private static instance: EventBus;
 
   private constructor() {
-    this.defaultQueue = new Queue('taskmesh:events', {
+    this.defaultQueue = new Queue('taskmesh-events', {
       connection,
       defaultJobOptions: {
         attempts: 3,
@@ -70,7 +70,7 @@ export class EventBus {
 
   async startWorker(concurrency = 5): Promise<void> {
     const worker = new Worker(
-      'taskmesh:events',
+      'taskmesh-events',
       async (job: Job) => {
         const event = job.data as DomainEvent;
         const eventHandlers = this.handlers.get(event.type) || [];

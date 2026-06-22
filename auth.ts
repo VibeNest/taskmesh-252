@@ -6,8 +6,6 @@ import GitHub from 'next-auth/providers/github';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 import { loginSchema, registerSchema } from '@/lib/validations/auth';
-import { rateLimiter } from '@/lib/rate-limiter';
-import { auditLogger } from '@/lib/audit';
 import { createChildLogger } from '@/lib/logger';
 
 const log = createChildLogger('auth');
@@ -64,6 +62,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const userAgent = headers?.['user-agent'] || '';
 
         const isRegister = credentials.isRegister === 'true';
+
+        const { rateLimiter } = await import('@/lib/rate-limiter');
+        const { auditLogger } = await import('@/lib/audit');
 
         if (isRegister) {
           const registerResult = await rateLimiter.checkRegister(ip);

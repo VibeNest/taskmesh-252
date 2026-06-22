@@ -1,21 +1,24 @@
 # Production Dockerfile — multi-stage build
 
 FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --legacy-peer-deps --only=production
+RUN npm ci --legacy-peer-deps
 
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN mkdir -p /app/public
 RUN npx prisma generate
 RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV production
+
+RUN apk add --no-cache openssl && ln -s /usr/lib/libssl.so.3 /usr/lib/libssl.so
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
