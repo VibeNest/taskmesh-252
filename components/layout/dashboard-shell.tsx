@@ -22,7 +22,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
 
-  const unreadCount = notifications.filter((n: { read: boolean }) => !n.read).length;
+  const unreadCount = Array.isArray(notifications) ? notifications.filter((n: { read: boolean }) => !n.read).length : 0;
 
   return (
     <DashboardLayout

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth-middleware';
-import { rateLimiter } from '@/lib/rate-limiter';
+import { edgeRateLimiter as rateLimiter } from '@/lib/rate-limiter-edge';
 
 const publicPaths = ['/', '/login', '/register', '/invitation', '/api/auth'];
 const apiPaths = ['/api/'];

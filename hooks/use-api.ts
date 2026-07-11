@@ -318,7 +318,8 @@ export function useNotifications() {
     queryFn: async () => {
       const response = await fetch('/api/notifications');
       if (!response.ok) throw new Error('Failed to fetch notifications');
-      return response.json();
+      const res = await response.json();
+      return Array.isArray(res.notifications) ? res.notifications : [];
     },
   });
 }
