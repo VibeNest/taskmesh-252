@@ -64,10 +64,10 @@ import {
   Trash2,
   BarChart3,
   Shield,
-  Clock,
   Activity,
 } from 'lucide-react';
-import { getInitials, formatRelativeTime } from '@/lib/utils';
+import { getInitials } from '@/lib/utils';
+import { ActivityFeed } from '@/features/activity/components/activity-feed';
 
 export default function WorkspacePage() {
   const params = useParams();
@@ -351,47 +351,7 @@ export default function WorkspacePage() {
           </Card>
 
           {/* Activity timeline */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Activity className="h-4 w-4 text-muted-foreground" />
-                Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {activityList.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-6">
-                  <Clock className="mb-2 h-6 w-6 text-muted-foreground/50" />
-                  <p className="text-sm text-muted-foreground">No activity yet</p>
-                  <p className="text-xs text-muted-foreground/60">
-                    Activity will appear as team members make changes.
-                  </p>
-                </div>
-              ) : (
-                <div className="relative space-y-0">
-                  {activityList.map((item: { id: string; action: string; user: { name: string; image: string }; createdAt: string }, idx: number) => (
-                    <div key={item.id} className="relative flex gap-3 pb-4 pl-5 last:pb-0">
-                      {idx < activityList.length - 1 && (
-                        <div className="absolute left-[7px] top-3 h-full w-px bg-border" />
-                      )}
-                      <div className="absolute left-0 top-1.5 flex h-3.5 w-3.5 items-center justify-center">
-                        <div className="h-2 w-2 rounded-full bg-primary/40" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm">
-                          <span className="font-medium">{item.user?.name || 'Someone'}</span>{' '}
-                          <span className="text-muted-foreground">{item.action}</span>
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatRelativeTime(item.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <ActivityFeed activities={activityList} />
         </div>
       </div>
     </div>
