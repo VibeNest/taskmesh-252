@@ -70,7 +70,15 @@ export function GlobalSearch({
             <Plus className="mr-2 h-4 w-4" />
             Create Workspace
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect(`/${params.workspaceId}/analytics`)}>
+          <CommandItem
+            onSelect={() =>
+              handleSelect(
+                params.workspaceId
+                  ? `/workspaces/${params.workspaceId}/analytics`
+                  : '/workspaces'
+              )
+            }
+          >
             <BarChart3 className="mr-2 h-4 w-4" />
             View Analytics
           </CommandItem>

@@ -98,7 +98,7 @@ function InvitationContent() {
       }
 
       toast.success('Invitation rejected');
-      router.push('/workspaces');
+      router.push('/dashboard');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to reject invitation');
     } finally {

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   DndContext,
@@ -34,7 +33,7 @@ import {
   filterTasks,
 } from '@/features/board/components/task-filters';
 import { TaskDetailPanel } from '@/features/task/components/task-detail-panel';
-import { ArrowLeft, Plus, Loader2, Users } from 'lucide-react';
+import { Plus, Loader2, Users } from 'lucide-react';
 import type { TaskWithDetails } from '@/types';
 
 export default function BoardPage() {
@@ -208,25 +207,17 @@ export default function BoardPage() {
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
-      <header className="flex items-center justify-between border-b px-4 py-2.5">
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/workspaces/${workspaceId}`}
-            className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-          </Link>
-          <div>
-            <h1 className="text-sm font-medium">{board.name}</h1>
-            {board.description && (
-              <p className="text-xs text-muted-foreground">{board.description}</p>
-            )}
-          </div>
+      <header className="flex items-center justify-between border-b bg-card/50 px-5 py-3">
+        <div>
+          <h1 className="text-base font-semibold tracking-tight">{board.name}</h1>
+          {board.description && (
+            <p className="text-xs text-muted-foreground">{board.description}</p>
+          )}
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="h-7 text-xs">
+          <Button variant="outline" size="sm" className="h-8 text-xs">
             <Users className="mr-1.5 size-3.5" />
-            Share
+            {members?.length ?? 0} members
           </Button>
         </div>
       </header>

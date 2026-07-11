@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth-middleware';
 import { rateLimiter } from '@/lib/rate-limiter';
 
-const publicPaths = ['/login', '/register', '/api/auth'];
+const publicPaths = ['/', '/login', '/register', '/invitation', '/api/auth'];
 const apiPaths = ['/api/'];
 const RATE_LIMIT_PATHS: Record<string, string> = {
   '/api/auth': 'auth',
@@ -25,7 +25,7 @@ export default auth(async (req: NextRequest & { auth: any }) => {
   }
 
   if (isLoggedIn && (pathname === '/login' || pathname === '/register')) {
-    return NextResponse.redirect(new URL('/workspaces', req.url));
+    return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
   if (isApiPath && pathname !== '/api/health' && pathname !== '/api/metrics') {

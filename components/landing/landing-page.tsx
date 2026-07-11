@@ -96,7 +96,7 @@ export default function LandingPage({ user }: LandingPageProps) {
             <div className="flex items-center gap-3">
               {user ? (
                 <Link
-                  href="/workspaces"
+                  href="/dashboard"
                   className={cn(buttonVariants({ size: 'sm' }))}
                 >
                   <LayoutDashboard className="mr-1.5 size-4" />
@@ -150,7 +150,7 @@ export default function LandingPage({ user }: LandingPageProps) {
               <div className="mt-2 flex flex-col gap-2">
                 {user ? (
                   <Link
-                    href="/workspaces"
+                    href="/dashboard"
                     className={cn(buttonVariants({ size: 'sm' }))}
                   >
                     <LayoutDashboard className="mr-1.5 size-4" />
@@ -204,7 +204,7 @@ export default function LandingPage({ user }: LandingPageProps) {
               <div className="flex flex-col items-center gap-3 sm:flex-row lg:items-start">
                 {user ? (
                   <Link
-                    href="/workspaces"
+                    href="/dashboard"
                     className={cn(buttonVariants({ size: 'lg' }), 'gap-2')}
                   >
                     <LayoutDashboard className="size-4" />
@@ -343,7 +343,7 @@ export default function LandingPage({ user }: LandingPageProps) {
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                 {user ? (
                   <Link
-                    href="/workspaces"
+                    href="/dashboard"
                     className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }), 'gap-2')}
                   >
                     <LayoutDashboard className="size-4" />
@@ -393,7 +393,7 @@ export default function LandingPage({ user }: LandingPageProps) {
             </Link>
             {user ? (
               <Link
-                href="/workspaces"
+                href="/dashboard"
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Dashboard

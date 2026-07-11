@@ -40,7 +40,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid email or password');
       } else {
-        router.push('/workspaces');
+        router.push('/dashboard');
         router.refresh();
       }
     } catch {
@@ -73,7 +73,7 @@ export default function LoginPage() {
         }
       }
 
-      router.push('/workspaces');
+      router.push('/dashboard');
       router.refresh();
     } catch {
       toast.error('Guest login unavailable. Use the credentials below.');
@@ -178,12 +178,7 @@ export default function LoginPage() {
                 <label htmlFor="password" className="text-sm font-medium">
                   Password
                 </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-primary hover:text-primary/80"
-                >
-                  Forgot password?
-                </Link>
+                <span className="text-xs text-muted-foreground">Demo credentials available below</span>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

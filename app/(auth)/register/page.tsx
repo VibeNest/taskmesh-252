@@ -47,7 +47,7 @@ export default function RegisterPage() {
           setError('Failed to create account');
         }
       } else {
-        router.push('/workspaces');
+        router.push('/dashboard');
         router.refresh();
       }
     } catch {

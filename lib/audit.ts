@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { prisma } from './prisma';
 
 export interface AuditEvent {
@@ -71,7 +72,7 @@ export class AuditLogger {
           entityId: event.entityId,
           userId: event.userId,
           workspaceId: event.workspaceId,
-          metadata: event.metadata,
+          metadata: event.metadata as Prisma.InputJsonValue,
           ipAddress: event.ipAddress,
           userAgent: event.userAgent,
           hash: event.hash,
@@ -104,7 +105,7 @@ export class AuditLogger {
         return { valid: false, brokenAt: i };
       }
 
-      const recomputedHash = await this.computeHash(current);
+      const recomputedHash = await this.computeHash(current as AuditEvent);
       if (current.hash !== recomputedHash) {
         return { valid: false, brokenAt: i };
       }

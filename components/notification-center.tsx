@@ -11,7 +11,7 @@ interface Notification {
   title: string;
   message: string;
   read: boolean;
-  data: any;
+  data?: unknown;
   createdAt: string;
 }
 
@@ -24,13 +24,13 @@ interface NotificationCenterProps {
 }
 
 const notificationIcons: Record<string, React.ReactNode> = {
-  WORKSPACE_INVITATION: <Mail className="h-4 w-4 text-blue-500" />,
-  WORKSPACE_MEMBER_JOINED: <Users className="h-4 w-4 text-emerald-500" />,
-  TASK_ASSIGNED: <CheckSquare className="h-4 w-4 text-purple-500" />,
-  TASK_MENTION: <AtSign className="h-4 w-4 text-yellow-500" />,
-  COMMENT_MENTION: <AtSign className="h-4 w-4 text-orange-500" />,
-  TASK_UPDATED: <FileEdit className="h-4 w-4 text-blue-500" />,
-  BOARD_CREATED: <Layout className="h-4 w-4 text-emerald-500" />,
+  WORKSPACE_INVITATION: <Mail className="h-4 w-4 text-primary" />,
+  WORKSPACE_MEMBER_JOINED: <Users className="h-4 w-4 text-success" />,
+  TASK_ASSIGNED: <CheckSquare className="h-4 w-4 text-primary" />,
+  TASK_MENTION: <AtSign className="h-4 w-4 text-warning" />,
+  COMMENT_MENTION: <AtSign className="h-4 w-4 text-warning" />,
+  TASK_UPDATED: <FileEdit className="h-4 w-4 text-primary" />,
+  BOARD_CREATED: <Layout className="h-4 w-4 text-success" />,
 };
 
 export function NotificationCenter({

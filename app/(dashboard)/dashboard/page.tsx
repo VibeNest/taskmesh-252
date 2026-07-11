@@ -132,32 +132,32 @@ export default function DashboardPage() {
       label: 'Total Workspaces',
       value: workspaceCount,
       icon: LayoutGrid,
-      color: 'text-blue-500',
-      bg: 'bg-blue-500/10',
+      color: 'text-primary',
+      bg: 'bg-primary/10',
       href: '/workspaces',
     },
     {
       label: 'Active Tasks',
       value: '24',
       icon: CheckCircle2,
-      color: 'text-emerald-500',
-      bg: 'bg-emerald-500/10',
+      color: 'text-success',
+      bg: 'bg-success/10',
       href: '/workspaces',
     },
     {
       label: 'Team Members',
       value: '12',
       icon: Users,
-      color: 'text-violet-500',
-      bg: 'bg-violet-500/10',
+      color: 'text-primary',
+      bg: 'bg-primary/10',
       href: '/workspaces',
     },
     {
       label: 'Pending Invitations',
       value: notificationCount,
       icon: Mail,
-      color: 'text-amber-500',
-      bg: 'bg-amber-500/10',
+      color: 'text-warning',
+      bg: 'bg-warning/10',
       href: '/workspaces',
     },
   ];
@@ -169,7 +169,6 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
             Welcome{session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}
-            <Sparkles className="ml-2 inline h-5 w-5 text-amber-400" />
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Here&apos;s what&apos;s happening across your workspaces today.
@@ -195,7 +194,7 @@ export default function DashboardPage() {
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Link key={stat.label} href={stat.href}>
-            <Card className="transition-all hover:shadow-md hover:border-primary/20">
+            <Card className="transition-all hover:border-primary/30 hover:shadow-md">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${stat.bg}`}>

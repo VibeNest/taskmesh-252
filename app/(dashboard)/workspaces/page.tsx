@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
 import { useWorkspaces, useCreateWorkspace } from '@/hooks/use-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +16,6 @@ import {
 import { Plus, Users, LayoutGrid, Loader2, ArrowRight } from 'lucide-react';
 
 export default function WorkspacesPage() {
-  const { data: session } = useSession();
   const { data: workspaces, isLoading } = useWorkspaces();
   const createWorkspace = useCreateWorkspace();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -41,18 +39,14 @@ export default function WorkspacesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <div className="mb-10">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Welcome{session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">Choose a workspace to get started</p>
-      </div>
-
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          {workspaces?.length || 0} workspace{(workspaces?.length || 0) !== 1 ? 's' : ''}
-        </h2>
+    <div className="mx-auto max-w-5xl px-6 py-8">
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Workspaces</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {workspaces?.length || 0} workspace{(workspaces?.length || 0) !== 1 ? 's' : ''} · pick one to continue
+          </p>
+        </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm">

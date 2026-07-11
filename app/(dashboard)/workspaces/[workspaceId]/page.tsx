@@ -58,7 +58,6 @@ import {
   LayoutGrid,
   Settings,
   Users,
-  ArrowLeft,
   Loader2,
   MoreHorizontal,
   Pencil,
@@ -119,24 +118,17 @@ export default function WorkspacePage() {
       {/* ───── Workspace Header ───── */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <Link
-            href="/workspaces"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border text-muted-foreground hover:text-foreground"
-            aria-label="Back to workspaces"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <span className="text-sm font-semibold text-primary">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+            <span className="text-base font-semibold text-primary">
               {workspace.name.charAt(0).toUpperCase()}
             </span>
           </div>
           <div>
-            <h1 className="text-lg font-semibold">{workspace.name}</h1>
-            <p className="text-xs text-muted-foreground">
+            <h1 className="text-xl font-semibold tracking-tight">{workspace.name}</h1>
+            <p className="text-sm text-muted-foreground">
               {workspace.description || 'No description'}
             </p>
-            <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <LayoutGrid className="h-3 w-3" />
                 {boards?.length || 0} boards
